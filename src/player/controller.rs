@@ -3,6 +3,8 @@
  */
 
 /// Define the controls required to play the game
+/// Abstract the controls from the input device, to allow playing the game
+/// with a keyboard or a game-controller.
 use bevy::prelude::*;
 
 #[derive(Debug, PartialEq)]

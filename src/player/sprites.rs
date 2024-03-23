@@ -2,6 +2,8 @@
  * Copyright (c) 2024 Louis Mayencourt
  */
 
+/// Manage the rendering of the different player animations from the sprite-sheet
+
 use bevy::prelude::*;
 
 use crate::player::*;
