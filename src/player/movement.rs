@@ -12,7 +12,7 @@
  * - https://www.youtube.com/watch?v=STyY26a_dPY
  */
 
-use bevy::{prelude::*, utils::tracing::instrument::WithSubscriber};
+use bevy::prelude::*;
 
 //  use crate::physics::{CollideEvent, CollideWith};
 use crate::player::*;

@@ -3,6 +3,7 @@
  */
 
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 pub mod controller;
 pub mod movement;
@@ -18,7 +19,7 @@ pub const SPRITE_WIDTH: f32 = 16.0;
 pub struct PlayerPlugin;
 
 #[derive(Component)]
-struct Player {
+pub struct Player {
     state: PlayerState,
 }
 
@@ -82,11 +83,13 @@ fn setup(
             direction: Vec2::ZERO,
             action: Action::Walk,
         },
+        RigidBody::Dynamic,
+        Collider::ball(8.0),
         // Collider,
         // RigidBody {
         //     position: Vec2::new(0.0, 40.0),
         //     ..default()
         // },
         // ShowAabbGizmo { color: None },
-    ));
+    )).insert(AdditionalMassProperties::Mass(80.0));
 }
