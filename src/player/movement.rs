@@ -12,13 +12,18 @@
  * - https://www.youtube.com/watch?v=STyY26a_dPY
  */
 
-use bevy::prelude::*;
+use bevy::{prelude::*, transform, utils::info};
+use bevy_rapier2d::prelude::*;
 
 //  use crate::physics::{CollideEvent, CollideWith};
 use crate::player::*;
 
-pub fn player_movement(mut query: Query<(&Controller, &mut Player)>) {
+pub fn player_movement(
+    mut query: Query<(&Controller, &mut Player)>,
+    mut ext_forces: Query<&mut ExternalForce, With<Player>>,
+) {
     let (controller, mut player) = query.single_mut();
+    let mut force = ext_forces.single_mut();
 
     //  debug!("Player state {:?}", player.state);
     //  debug!("Player attitude {:?}", player.attitude);
@@ -26,6 +31,8 @@ pub fn player_movement(mut query: Query<(&Controller, &mut Player)>) {
     //  match player.attitude {
     //  PlayerAttitude::InAir => {
     //  player.state = PlayerState::Running;
+
+    force.force = controller.direction * 15.0*1000.0;
 
     // Can only jump if on the ground
     if controller.action == Action::Run {

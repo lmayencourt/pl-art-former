@@ -17,7 +17,8 @@ fn main() {
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest())) // prevents blurry sprites
         // .add_plugins(WorldInspectorPlugin::new())
         .add_systems(Update, bevy::window::close_on_esc)
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+        // Assume that the player is 2m tall
+        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(player::SPRITE_HEIGHT/2.0))
         .add_plugins(RapierDebugRenderPlugin::default())
         // .add_plugins(ParticleSystemPlugin)
         // // Custom plugin and systems

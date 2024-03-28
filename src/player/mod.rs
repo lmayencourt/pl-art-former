@@ -91,5 +91,11 @@ fn setup(
         //     ..default()
         // },
         // ShowAabbGizmo { color: None },
-    )).insert(AdditionalMassProperties::Mass(80.0));
+    ))
+    .insert(ColliderMassProperties::Mass(80.0))
+    .insert(LockedAxes::ROTATION_LOCKED)
+    .insert(ExternalForce {
+        force: Vec2::ZERO,
+        torque: 0.0,
+    });
 }
