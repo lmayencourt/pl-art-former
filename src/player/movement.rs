@@ -68,7 +68,7 @@ pub fn player_movement(
             if controller.action == Action::Run {
                 player.state = PlayerState::Running;
             } else if controller.action == Action::Jump {
-                velocity.linvel.y = controller.direction.y * JUMP_SPEED;
+                jump(&controller, &mut velocity);
             } else if controller.action == Action::None {
                 // damping.linear_damping = 5.0;
             }
@@ -78,9 +78,9 @@ pub fn player_movement(
             if controller.action == Action::Run {
                 apply_horizontal_force(&controller, &mut force, &mut velocity);
             } else if controller.action == Action::Jump {
-                velocity.linvel.y = controller.direction.y * JUMP_SPEED;
+                jump(&controller, &mut velocity);
             } else if controller.action == Action::None {
-                limit_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE*2.0);
+                stop_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE*2.0);
 
                 if velocity.linvel.x < 20.0 && velocity.linvel.x > -20.0 {
                     player.state = PlayerState::Idle;
@@ -89,10 +89,10 @@ pub fn player_movement(
         },
         PlayerState::InAir => {
             // Keep X movement control
-            if controller.action == Action::Run {
+            if controller.action == Action::Run || controller.action == Action::Jump {
                 apply_horizontal_force(&controller, &mut force, &mut velocity);
             } else if controller.action == Action::None {
-                limit_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE);
+                stop_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE);
             }
 
             // // Modify gravity according to Y velocity
@@ -111,6 +111,8 @@ pub fn player_movement(
                     player.state = PlayerState::Idle;
                 } else if controller.action == Action::Run {
                     player.state = PlayerState::Running;
+                } else if controller.action == Action::Jump {
+                    jump(&controller, &mut velocity);
                 }
             }
         },
@@ -118,7 +120,7 @@ pub fn player_movement(
 }
 
 fn apply_horizontal_force(controller: &Controller, force: &mut ExternalForce, velocity: &mut Velocity) {
-    force.force = controller.direction * RUNNING_FORCE;
+    force.force.x = controller.direction.x * RUNNING_FORCE;
 
     if velocity.linvel.x > MAX_RUNNING_SPEED {
         velocity.linvel.x = MAX_RUNNING_SPEED;
@@ -128,7 +130,7 @@ fn apply_horizontal_force(controller: &Controller, force: &mut ExternalForce, ve
     }
 }
 
-fn limit_horizontal_velocity(velocity: &mut Velocity, force: &mut ExternalForce, max_speed: f32) {
+fn stop_horizontal_velocity(velocity: &mut Velocity, force: &mut ExternalForce, max_speed: f32) {
     if velocity.linvel.x > 20.0 {
         // apply opposing-force to stop movement
         force.force = Vec2::NEG_X * max_speed;
@@ -136,4 +138,8 @@ fn limit_horizontal_velocity(velocity: &mut Velocity, force: &mut ExternalForce,
         // apply opposing-force to stop movement
         force.force = Vec2::X * max_speed;
     }
+}
+
+fn jump(controller: &Controller, velocity: &mut Velocity) {
+    velocity.linvel.y = controller.direction.y * JUMP_SPEED;
 }
