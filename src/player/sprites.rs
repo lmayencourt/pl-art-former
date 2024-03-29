@@ -85,3 +85,15 @@ pub fn animate_sprite(
         debug!("indice {}", atlas.index);
     }
 }
+
+pub fn animate_direction(
+    mut query: Query<(&Velocity, &mut Sprite), With<Player>>,
+) {
+    let (velocity, mut sprite) = query.single_mut();
+
+    if velocity.linvel.x > 25.0 {
+        sprite.flip_x = false;
+    } else if velocity.linvel.x < -25.0 {
+        sprite.flip_x = true;
+    }
+}

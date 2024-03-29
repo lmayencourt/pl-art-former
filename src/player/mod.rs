@@ -52,6 +52,7 @@ impl Plugin for PlayerPlugin {
         //     movement::collide_event_handler.run_if(in_state(ApplicationState::InGame)),
         // );
         app.add_systems(Update, sprites::animate_sprite);
+        app.add_systems(Update, sprites::animate_direction);
     }
 }
 
