@@ -102,6 +102,7 @@ fn setup(
     ))
     .insert(Collider::capsule(Vec2::new(0.0, -4.0), Vec2::new(0.0, 4.0), 4.0))
     .insert(ColliderMassProperties::Mass(PLAYER_MASS))
+    .insert(Ccd::enabled())
     .insert(LockedAxes::ROTATION_LOCKED)
     .insert(Velocity::default())
     .insert(GravityScale(16.0))

@@ -35,21 +35,32 @@ pub fn ground_detection(
     let (transform, entity, mut grounded) = query.single_mut();
 
     // Ray casting for ground detection
-    let ray_pos = transform.translation.truncate();
+    let ray_pos = transform.translation.truncate() - Vec2::new(8.0, 0.0);
     let ray_dir = Vec2::NEG_Y;
     let max_toi = 2.5 * 16.0;
     let solid = true;
     let filter = QueryFilter::default().exclude_rigid_body(entity);
 
     if let Some((_entity, _toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter) {
-        // let hit_point = ray_pos + ray_dir * toi;
-        // info!("Contact of ray with {:?} at {}", _entity, _hit_point);
         grounded.0 = true;
     } else {
         grounded.0 = false;
     }
 
-    gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
+    // gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
+
+    // Ray casting for ground detection
+    let ray_pos = transform.translation.truncate() + Vec2::new(8.0, 0.0);
+
+    if !grounded.0 {
+        if let Some((_entity, _toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter) {
+            grounded.0 = true;
+        } else {
+            grounded.0 = false;
+        }
+    }
+
+    // gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
 }
 
 pub fn player_movement(

@@ -39,7 +39,7 @@ fn setup_world(mut commands: Commands) {
     // Platform
     spawn_wall(&mut commands, Vec3::new(WORLD_LEFT + WORLD_WIDTH/4.0, WORLD_BOTTOM + 16.0*4.0*1.8 - BORDER_WIDTH, 0.0), Vec3::new(150.0, BORDER_WIDTH, 0.0));
     spawn_wall(&mut commands, Vec3::new(WORLD_WIDTH_MIDDLE, WORLD_BOTTOM + 16.0*4.0*1.8*2.0 - BORDER_WIDTH, 0.0), Vec3::new(150.0, BORDER_WIDTH, 0.0));
-    spawn_wall(&mut commands, Vec3::new(WORLD_RIGHT - WORLD_WIDTH/4.0, WORLD_BOTTOM + WORLD_HEIGHT*3.0/4.0, 0.0), Vec3::new(150.0, BORDER_WIDTH, 0.0));
+    spawn_wall(&mut commands, Vec3::new(WORLD_LEFT + WORLD_WIDTH/4.0, WORLD_BOTTOM + 16.0*4.0*1.8*3.0 - BORDER_WIDTH, 0.0), Vec3::new(150.0, BORDER_WIDTH, 0.0));
 }
 
 fn spawn_wall(commands: &mut Commands, translation: Vec3, scale: Vec3) {
