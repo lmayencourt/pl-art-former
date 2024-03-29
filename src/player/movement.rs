@@ -20,12 +20,12 @@ use bevy_rapier2d::prelude::*;
 //  use crate::physics::{CollideEvent, CollideWith};
 use crate::player::*;
 
-const MAX_RUNNING_SPEED: f32 = 200.0;
-const JUMP_SPEED: f32 = 300.0;
+const MAX_RUNNING_SPEED: f32 = 300.0;
 // Force to apply to reach MAX_RUNNING_SPEED in 2 secs
 const RUNNING_FORCE: f32 = PLAYER_MASS/2.0 * 10.0 * MAX_RUNNING_SPEED;
 
-const MAX_FALLING_SPEED: f32 = 400.0;
+const JUMP_SPEED: f32 = 800.0;
+const MAX_FALLING_SPEED: f32 = 600.0;
 
 pub fn player_movement(
     mut query: Query<(&Controller, &mut Player)>,
@@ -76,24 +76,13 @@ pub fn player_movement(
         PlayerState::Walking => {},
         PlayerState::Running => {
             if controller.action == Action::Run {
-                force.force = controller.direction * RUNNING_FORCE;
-    
-                if velocity.linvel.x > MAX_RUNNING_SPEED {
-                    velocity.linvel.x = MAX_RUNNING_SPEED;
-                }
-                if velocity.linvel.x < -MAX_RUNNING_SPEED {
-                    velocity.linvel.x = -MAX_RUNNING_SPEED;
-                }
+                apply_horizontal_force(&controller, &mut force, &mut velocity);
             } else if controller.action == Action::Jump {
                 velocity.linvel.y = controller.direction.y * JUMP_SPEED;
             } else if controller.action == Action::None {
-                if velocity.linvel.x > 20.0 {
-                    // apply opposing-force to stop movement
-                    force.force = Vec2::NEG_X * RUNNING_FORCE*2.0;
-                } else if velocity.linvel.x < -20.0 {
-                    // apply opposing-force to stop movement
-                    force.force = Vec2::X * RUNNING_FORCE*2.0;
-                } else {
+                limit_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE*2.0);
+
+                if velocity.linvel.x < 20.0 && velocity.linvel.x > -20.0 {
                     player.state = PlayerState::Idle;
                 }
             }
@@ -101,22 +90,9 @@ pub fn player_movement(
         PlayerState::InAir => {
             // Keep X movement control
             if controller.action == Action::Run {
-                force.force = controller.direction * RUNNING_FORCE;
-    
-                if velocity.linvel.x > MAX_RUNNING_SPEED {
-                    velocity.linvel.x = MAX_RUNNING_SPEED;
-                }
-                if velocity.linvel.x < -MAX_RUNNING_SPEED {
-                    velocity.linvel.x = -MAX_RUNNING_SPEED;
-                }
+                apply_horizontal_force(&controller, &mut force, &mut velocity);
             } else if controller.action == Action::None {
-                if velocity.linvel.x > 20.0 {
-                    // apply opposing-force to stop movement
-                    force.force = Vec2::NEG_X * RUNNING_FORCE;
-                } else if velocity.linvel.x < -20.0 {
-                    // apply opposing-force to stop movement
-                    force.force = Vec2::X * RUNNING_FORCE;
-                }
+                limit_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE);
             }
 
             // // Modify gravity according to Y velocity
@@ -138,5 +114,26 @@ pub fn player_movement(
                 }
             }
         },
+    }
+}
+
+fn apply_horizontal_force(controller: &Controller, force: &mut ExternalForce, velocity: &mut Velocity) {
+    force.force = controller.direction * RUNNING_FORCE;
+
+    if velocity.linvel.x > MAX_RUNNING_SPEED {
+        velocity.linvel.x = MAX_RUNNING_SPEED;
+    }
+    if velocity.linvel.x < -MAX_RUNNING_SPEED {
+        velocity.linvel.x = -MAX_RUNNING_SPEED;
+    }
+}
+
+fn limit_horizontal_velocity(velocity: &mut Velocity, force: &mut ExternalForce, max_speed: f32) {
+    if velocity.linvel.x > 20.0 {
+        // apply opposing-force to stop movement
+        force.force = Vec2::NEG_X * max_speed;
+    } else if velocity.linvel.x < -20.0 {
+        // apply opposing-force to stop movement
+        force.force = Vec2::X * max_speed;
     }
 }
