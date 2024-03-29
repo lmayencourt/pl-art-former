@@ -25,18 +25,43 @@ const JUMP_SPEED: f32 = 300.0;
 // Force to apply to reach MAX_RUNNING_SPEED in 2 secs
 const RUNNING_FORCE: f32 = PLAYER_MASS/2.0 * 10.0 * MAX_RUNNING_SPEED;
 
+const MAX_FALLING_SPEED: f32 = 400.0;
+
 pub fn player_movement(
     mut query: Query<(&Controller, &mut Player)>,
-    mut physics_query: Query<(&mut ExternalForce, &mut Velocity, &mut Damping), With<Player>>,
+    mut body_query: Query<(&Transform, Entity), With<Player>>,
+    mut modifier_query: Query<(&mut ExternalForce, &mut Velocity, &mut GravityScale), With<Player>>,
+    rapier_ctx: Res<RapierContext>,
+    mut gizmos: Gizmos,
 ) {
     let (controller, mut player) = query.single_mut();
-    let (mut force, mut velocity, mut damping) = physics_query.single_mut();
+    let (transform, entity) = body_query.single();
+    let (mut force, mut velocity, mut gravity_scale) = modifier_query.single_mut();
 
     //  debug!("Player state {:?}", player.state);
     //  debug!("Control state {:?}", controller.direction);
 
+    let grounded: bool;
+
+    // Ray casting for ground detection
+    let ray_pos = transform.translation.truncate();
+    let ray_dir = Vec2::NEG_Y;
+    let max_toi = 2.5 * 16.0;
+    let solid = true;
+    let filter = QueryFilter::default().exclude_rigid_body(entity);
+
+    if let Some((entity, toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter) {
+        // let hit_point = ray_pos + ray_dir * toi;
+        // info!("Contact of ray with {:?} at {}", entity, hit_point);
+        grounded = true;
+    } else {
+        grounded = false;
+        player.state = PlayerState::InAir;
+    }
+
+    gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
+
     force.force = Vec2::ZERO;
-    damping.linear_damping = 0.0;
 
     match player.state {
         PlayerState::Idle => {
@@ -44,7 +69,6 @@ pub fn player_movement(
                 player.state = PlayerState::Running;
             } else if controller.action == Action::Jump {
                 velocity.linvel.y = controller.direction.y * JUMP_SPEED;
-                player.state = PlayerState::InAir;
             } else if controller.action == Action::None {
                 // damping.linear_damping = 5.0;
             }
@@ -60,29 +84,59 @@ pub fn player_movement(
                 if velocity.linvel.x < -MAX_RUNNING_SPEED {
                     velocity.linvel.x = -MAX_RUNNING_SPEED;
                 }
+            } else if controller.action == Action::Jump {
+                velocity.linvel.y = controller.direction.y * JUMP_SPEED;
             } else if controller.action == Action::None {
-                if velocity.linvel.x > 20.0 || velocity.linvel.x < -20.0 {
-                    damping.linear_damping = 5.0;
+                if velocity.linvel.x > 20.0 {
+                    // apply opposing-force to stop movement
+                    force.force = Vec2::NEG_X * RUNNING_FORCE*2.0;
+                } else if velocity.linvel.x < -20.0 {
+                    // apply opposing-force to stop movement
+                    force.force = Vec2::X * RUNNING_FORCE*2.0;
                 } else {
                     player.state = PlayerState::Idle;
                 }
             }
         },
-        PlayerState::InAir => {},
+        PlayerState::InAir => {
+            // Keep X movement control
+            if controller.action == Action::Run {
+                force.force = controller.direction * RUNNING_FORCE;
+    
+                if velocity.linvel.x > MAX_RUNNING_SPEED {
+                    velocity.linvel.x = MAX_RUNNING_SPEED;
+                }
+                if velocity.linvel.x < -MAX_RUNNING_SPEED {
+                    velocity.linvel.x = -MAX_RUNNING_SPEED;
+                }
+            } else if controller.action == Action::None {
+                if velocity.linvel.x > 20.0 {
+                    // apply opposing-force to stop movement
+                    force.force = Vec2::NEG_X * RUNNING_FORCE;
+                } else if velocity.linvel.x < -20.0 {
+                    // apply opposing-force to stop movement
+                    force.force = Vec2::X * RUNNING_FORCE;
+                }
+            }
+
+            // // Modify gravity according to Y velocity
+            // if velocity.linvel.y > 10.0 {
+            //     gravity_scale.0 = 8.0;
+            // } else {
+            //     gravity_scale.0 = 8.0;
+            // }
+
+            if velocity.linvel.y < -MAX_FALLING_SPEED {
+                velocity.linvel.y = -MAX_FALLING_SPEED;
+            }
+
+            if grounded {
+                if controller.action == Action::None {
+                    player.state = PlayerState::Idle;
+                } else if controller.action == Action::Run {
+                    player.state = PlayerState::Running;
+                }
+            }
+        },
     }
 }
-
-//  pub fn collide_event_handler(
-//      mut events: EventReader<CollideEvent>,
-//      mut query: Query<&mut Player>,
-//      mut next_state: ResMut<NextState<ApplicationState>>,
-//  ) {
-//      for event in events.read() {
-//          if let CollideWith::Obstacle = event.other {
-//              info!("End of Game !");
-//              let mut player = query.single_mut();
-//              player.attitude = PlayerAttitude::InWall;
-//              next_state.set(ApplicationState::GameEnding);
-//          }
-//      }
-//  }

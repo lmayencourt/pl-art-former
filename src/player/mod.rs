@@ -98,7 +98,6 @@ fn setup(
     .insert(ColliderMassProperties::Mass(PLAYER_MASS))
     .insert(LockedAxes::ROTATION_LOCKED)
     .insert(Velocity::default())
-    .insert(GravityScale(2.0))
-    .insert(Damping::default())
+    .insert(GravityScale(8.0))
     .insert(ExternalForce::default());
 }
