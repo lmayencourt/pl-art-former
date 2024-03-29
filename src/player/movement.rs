@@ -24,7 +24,7 @@ const MAX_RUNNING_SPEED: f32 = 300.0;
 // Force to apply to reach MAX_RUNNING_SPEED in 2 secs
 const RUNNING_FORCE: f32 = PLAYER_MASS/2.0 * 10.0 * MAX_RUNNING_SPEED;
 
-const JUMP_SPEED: f32 = 800.0;
+const JUMP_SPEED: f32 = 600.0;
 const MAX_FALLING_SPEED: f32 = 600.0;
 
 pub fn player_movement(
@@ -95,6 +95,10 @@ pub fn player_movement(
                 stop_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE);
             }
 
+            if controller.action != Action::Jump {
+                stop_vertical_velocity(&mut velocity, &mut force, JUMP_SPEED);
+            }
+
             // // Modify gravity according to Y velocity
             // if velocity.linvel.y > 10.0 {
             //     gravity_scale.0 = 8.0;
@@ -142,4 +146,10 @@ fn stop_horizontal_velocity(velocity: &mut Velocity, force: &mut ExternalForce, 
 
 fn jump(controller: &Controller, velocity: &mut Velocity) {
     velocity.linvel.y = controller.direction.y * JUMP_SPEED;
+}
+
+fn stop_vertical_velocity(velocity: &mut Velocity, force: &mut ExternalForce, max_speed: f32) {
+    if velocity.linvel.y > 0.0 {
+        force.force += Vec2::NEG_Y * max_speed * 200.0;
+    }
 }
