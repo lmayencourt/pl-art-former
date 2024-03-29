@@ -19,7 +19,7 @@ fn main() {
         .add_systems(Update, bevy::window::close_on_esc)
         // Assume that the player is 2m tall
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(player::SPRITE_HEIGHT/2.0))
-        .add_plugins(RapierDebugRenderPlugin::default())
+        // .add_plugins(RapierDebugRenderPlugin::default())
         // .add_plugins(ParticleSystemPlugin)
         // // Custom plugin and systems
         // .insert_state(ApplicationState::LandingScreen)

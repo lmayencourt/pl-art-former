@@ -38,8 +38,9 @@ pub fn player_movement(
     let (transform, entity) = body_query.single();
     let (mut force, mut velocity, mut gravity_scale) = modifier_query.single_mut();
 
-    //  debug!("Player state {:?}", player.state);
-    //  debug!("Control state {:?}", controller.direction);
+    // info!("Player state {:?}", player.state);
+    // info!("Control state {:?}", controller.direction);
+    // info!("Velocity {:?}", velocity);
 
     let grounded: bool;
 
@@ -59,7 +60,7 @@ pub fn player_movement(
         player.state = PlayerState::InAir;
     }
 
-    gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
+    // gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
 
     force.force = Vec2::ZERO;
 

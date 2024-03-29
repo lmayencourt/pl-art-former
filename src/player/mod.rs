@@ -63,7 +63,7 @@ fn setup(
 ) {
     let texture = asset_server.load("tileset.png");
     let layout =
-        TextureAtlasLayout::from_grid(Vec2::new(SPRITE_WIDTH, SPRITE_HEIGHT), 8, 2, None, None);
+        TextureAtlasLayout::from_grid(Vec2::new(SPRITE_WIDTH, SPRITE_HEIGHT), 8, 3, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let animation_indices = AnimationIndices { first: 0, last: 7 };
     commands.spawn((
