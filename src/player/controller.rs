@@ -10,8 +10,6 @@ use bevy::prelude::*;
 #[derive(Debug, PartialEq)]
 pub enum Action {
     None,
-    Walk,
-    Run,
     Jump,
 }
 
@@ -34,10 +32,8 @@ pub fn keyboard_inputs(
     // Directional inputs
     if keyboard_input.pressed(KeyCode::ArrowLeft) {
         controller.direction = Vec2::NEG_X;
-        controller.action = Action::Run;
     } else if keyboard_input.pressed(KeyCode::ArrowRight) {
         controller.direction = Vec2::X;
-        controller.action = Action::Run;
     }
 
     // Jump inputs

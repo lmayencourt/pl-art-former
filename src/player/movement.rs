@@ -66,20 +66,18 @@ pub fn player_movement(
 
     match player.state {
         PlayerState::Idle => {
-            if controller.action == Action::Run {
+            if controller.direction.x != 0.0 {
                 player.state = PlayerState::Running;
-            } else if controller.action == Action::Jump {
+            }
+
+            if controller.action == Action::Jump {
                 jump(&controller, &mut velocity);
-            } else if controller.action == Action::None {
-                // damping.linear_damping = 5.0;
             }
         },
         PlayerState::Walking => {},
         PlayerState::Running => {
-            if controller.action == Action::Run {
+            if controller.direction.x != 0.0 {
                 apply_horizontal_force(&controller, &mut force, &mut velocity);
-            } else if controller.action == Action::Jump {
-                jump(&controller, &mut velocity);
             } else if controller.action == Action::None {
                 stop_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE*2.0);
 
@@ -87,10 +85,14 @@ pub fn player_movement(
                     player.state = PlayerState::Idle;
                 }
             }
+
+            if controller.action == Action::Jump {
+                jump(&controller, &mut velocity);
+            }
         },
         PlayerState::InAir => {
             // Keep X movement control
-            if controller.action == Action::Run || controller.action == Action::Jump {
+            if controller.direction.x != 0.0 || controller.action == Action::Jump {
                 apply_horizontal_force(&controller, &mut force, &mut velocity);
             } else if controller.action == Action::None {
                 stop_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE);
@@ -114,7 +116,7 @@ pub fn player_movement(
             if grounded {
                 if controller.action == Action::None {
                     player.state = PlayerState::Idle;
-                } else if controller.action == Action::Run {
+                } else if controller.direction.x != 0.0 {
                     player.state = PlayerState::Running;
                 } else if controller.action == Action::Jump {
                     jump(&controller, &mut velocity);

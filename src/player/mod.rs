@@ -85,7 +85,7 @@ fn setup(
         },
         Controller {
             direction: Vec2::ZERO,
-            action: Action::Walk,
+            action: Action::None,
         },
         RigidBody::Dynamic,
         // Collider,
