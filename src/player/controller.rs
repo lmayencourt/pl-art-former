@@ -12,6 +12,7 @@ pub enum Action {
     None,
     Walk,
     Run,
+    Jump,
 }
 
 #[derive(Component)]
@@ -27,16 +28,21 @@ pub fn keyboard_inputs(
 ) {
     let mut controller = query.single_mut();
 
+    controller.action = Action::None;
     controller.direction = Vec2::ZERO;
+
+    // Directional inputs
     if keyboard_input.pressed(KeyCode::ArrowLeft) {
         controller.direction = Vec2::NEG_X;
         controller.action = Action::Run;
     } else if keyboard_input.pressed(KeyCode::ArrowRight) {
         controller.direction = Vec2::X;
         controller.action = Action::Run;
-    } else if keyboard_input.pressed(KeyCode::ArrowUp) {
-        controller.direction = Vec2::Y;
-    } else {
-        controller.action = Action::Walk;
+    }
+
+    // Jump inputs
+    if keyboard_input.pressed(KeyCode::ArrowUp) {
+        controller.direction += Vec2::Y;
+        controller.action = Action::Jump;
     }
 }

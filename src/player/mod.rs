@@ -16,6 +16,8 @@ use sprites::*;
 pub const SPRITE_HEIGHT: f32 = 16.0;
 pub const SPRITE_WIDTH: f32 = 16.0;
 
+pub const PLAYER_MASS: f32 = 80.0;
+
 pub struct PlayerPlugin;
 
 #[derive(Component)]
@@ -25,8 +27,10 @@ pub struct Player {
 
 #[derive(Debug)]
 enum PlayerState {
+    Idle,
     Walking,
     Running,
+    InAir,
 }
 
 impl Plugin for PlayerPlugin {
@@ -61,7 +65,6 @@ fn setup(
         TextureAtlasLayout::from_grid(Vec2::new(SPRITE_WIDTH, SPRITE_HEIGHT), 8, 2, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let animation_indices = AnimationIndices { first: 0, last: 7 };
-    commands.spawn(Camera2dBundle::default());
     commands.spawn((
         SpriteSheetBundle {
             texture,
@@ -75,7 +78,7 @@ fn setup(
         animation_indices,
         AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
         Player {
-            state: PlayerState::Walking,
+            state: PlayerState::Idle,
             //     attitude: PlayerAttitude::InAir,
             //     // jump_timer: Timer::from_seconds(0.4, TimerMode::Repeating),
         },
@@ -92,10 +95,10 @@ fn setup(
         // },
         // ShowAabbGizmo { color: None },
     ))
-    .insert(ColliderMassProperties::Mass(80.0))
+    .insert(ColliderMassProperties::Mass(PLAYER_MASS))
     .insert(LockedAxes::ROTATION_LOCKED)
-    .insert(ExternalForce {
-        force: Vec2::ZERO,
-        torque: 0.0,
-    });
+    .insert(Velocity::default())
+    .insert(GravityScale(2.0))
+    .insert(Damping::default())
+    .insert(ExternalForce::default());
 }

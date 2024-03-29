@@ -27,6 +27,9 @@ impl Plugin for WorldPlugin {
 }
 
 fn setup_world(mut commands: Commands) {
+    // 2d Camera
+    commands.spawn(Camera2dBundle::default());
+
     // world borders
     spawn_wall(&mut commands, Vec3::new(WORLD_LEFT, WORLD_HEIGHT_MIDDLE, 0.0), Vec3::new(BORDER_WIDTH, WORLD_HEIGHT, 0.0));
     spawn_wall(&mut commands, Vec3::new(WORLD_RIGHT, WORLD_HEIGHT_MIDDLE, 0.0), Vec3::new(BORDER_WIDTH, WORLD_HEIGHT, 0.0));

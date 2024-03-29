@@ -48,6 +48,9 @@ pub fn animate_sprite(
         // }
 
         match player.state {
+            PlayerState::Idle => {
+                atlas.index = SPRITE_WALK_IDX.0;
+            }
             PlayerState::Running => {
                 if timer.just_finished() {
                     atlas.index = if atlas.index < SPRITE_RUN_IDX.0 {
@@ -69,9 +72,10 @@ pub fn animate_sprite(
                         atlas.index + 1
                     }
                 }
-            } //     PlayerState::Jumping => {
-              //         atlas.index = 9;
-              //     }
+            }
+            PlayerState::InAir => {
+                atlas.index = SPRITE_RUN_IDX.0 + 2;
+            }
               //     PlayerState::Dead => {
               //         atlas.index = 6;
               //         transform.rotation = Quat::from_rotation_x(std::f32::consts::PI);
