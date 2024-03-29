@@ -88,7 +88,6 @@ fn setup(
             action: Action::Walk,
         },
         RigidBody::Dynamic,
-        Collider::ball(8.0),
         // Collider,
         // RigidBody {
         //     position: Vec2::new(0.0, 40.0),
@@ -96,6 +95,7 @@ fn setup(
         // },
         // ShowAabbGizmo { color: None },
     ))
+    .insert(Collider::capsule(Vec2::new(0.0, -4.0), Vec2::new(0.0, 4.0), 4.0))
     .insert(ColliderMassProperties::Mass(PLAYER_MASS))
     .insert(LockedAxes::ROTATION_LOCKED)
     .insert(Velocity::default())
