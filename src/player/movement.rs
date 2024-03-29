@@ -14,7 +14,7 @@
  * - https://www.youtube.com/watch?v=STyY26a_dPY
  */
 
-use bevy::{prelude::*, transform, utils::info};
+use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 //  use crate::physics::{CollideEvent, CollideWith};
@@ -27,22 +27,12 @@ const RUNNING_FORCE: f32 = PLAYER_MASS/2.0 * 10.0 * MAX_RUNNING_SPEED;
 const JUMP_SPEED: f32 = 600.0;
 const MAX_FALLING_SPEED: f32 = 600.0;
 
-pub fn player_movement(
-    mut query: Query<(&Controller, &mut Player)>,
-    mut body_query: Query<(&Transform, Entity), With<Player>>,
-    mut modifier_query: Query<(&mut ExternalForce, &mut Velocity, &mut GravityScale), With<Player>>,
+pub fn ground_detection(
+    mut query: Query<(&Transform, Entity, &mut Grounded), With<Player>>,
     rapier_ctx: Res<RapierContext>,
     mut gizmos: Gizmos,
 ) {
-    let (controller, mut player) = query.single_mut();
-    let (transform, entity) = body_query.single();
-    let (mut force, mut velocity, mut gravity_scale) = modifier_query.single_mut();
-
-    // info!("Player state {:?}", player.state);
-    // info!("Control state {:?}", controller.direction);
-    // info!("Velocity {:?}", velocity);
-
-    let grounded: bool;
+    let (transform, entity, mut grounded) = query.single_mut();
 
     // Ray casting for ground detection
     let ray_pos = transform.translation.truncate();
@@ -51,16 +41,34 @@ pub fn player_movement(
     let solid = true;
     let filter = QueryFilter::default().exclude_rigid_body(entity);
 
-    if let Some((entity, toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter) {
+    if let Some((_entity, _toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter) {
         // let hit_point = ray_pos + ray_dir * toi;
-        // info!("Contact of ray with {:?} at {}", entity, hit_point);
-        grounded = true;
+        // info!("Contact of ray with {:?} at {}", _entity, _hit_point);
+        grounded.0 = true;
     } else {
-        grounded = false;
+        grounded.0 = false;
+    }
+
+    gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
+}
+
+pub fn player_movement(
+    mut query: Query<(&Controller, &mut Player)>,
+    body_query: Query<&Grounded, With<Player>>,
+    mut modifier_query: Query<(&mut ExternalForce, &mut Velocity), With<Player>>,
+) {
+    let (controller, mut player) = query.single_mut();
+    let grounded = body_query.single();
+    let (mut force, mut velocity) = modifier_query.single_mut();
+
+    let grounded = grounded.0;
+    if !grounded {
         player.state = PlayerState::InAir;
     }
 
-    // gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
+    // info!("Player state {:?}", player.state);
+    // info!("Control state {:?}", controller.direction);
+    // info!("Velocity {:?}", velocity);
 
     force.force = Vec2::ZERO;
 

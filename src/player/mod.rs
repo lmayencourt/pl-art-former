@@ -33,6 +33,9 @@ enum PlayerState {
     InAir,
 }
 
+#[derive(Component)]
+pub struct Grounded(bool);
+
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         // app.insert_resource(sprites::AnimationUpDown(true));
@@ -47,6 +50,7 @@ impl Plugin for PlayerPlugin {
             movement::player_movement, //.after(controller::keyboard_inputs)
                                        //.run_if(in_state(ApplicationState::InGame)),
         );
+        app.add_systems(FixedUpdate, movement::ground_detection);
         // app.add_systems(
         //     FixedUpdate,
         //     movement::collide_event_handler.run_if(in_state(ApplicationState::InGame)),
@@ -87,6 +91,7 @@ fn setup(
             direction: Vec2::ZERO,
             action: Action::None,
         },
+        Grounded(false),
         RigidBody::Dynamic,
         // Collider,
         // RigidBody {
