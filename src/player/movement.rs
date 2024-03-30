@@ -85,13 +85,6 @@ pub fn player_movement(
                 stop_vertical_velocity(&mut velocity, &mut force, JUMP_SPEED);
             }
 
-            // // Modify gravity according to Y velocity
-            // if velocity.linvel.y > 10.0 {
-            //     gravity_scale.0 = 8.0;
-            // } else {
-            //     gravity_scale.0 = 8.0;
-            // }
-
             if velocity.linvel.y < -MAX_FALLING_SPEED {
                 velocity.linvel.y = -MAX_FALLING_SPEED;
             }

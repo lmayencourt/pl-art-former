@@ -30,6 +30,5 @@ fn main() {
         // .add_systems(Update, menu_control)
         .add_plugins(WorldPlugin)
         .add_plugins(PlayerPlugin)
-        // .add_plugins(PhysicsPlugin)
         .run();
 }

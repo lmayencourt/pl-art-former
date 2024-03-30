@@ -20,8 +20,6 @@ const WORLD_BOTTOM: f32 = -WORLD_TOP;
 const WORLD_WIDTH: f32 = WORLD_HEIGHT * 1.618;
 const WORLD_RIGHT: f32 = WORLD_WIDTH / 2.0;
 const WORLD_LEFT: f32 = -WORLD_RIGHT;
-const WORLD_HEIGHT_MIDDLE: f32 = 0.0; //WORLD_BOTTOM + WORLD_HEIGHT/2.0;
-const WORLD_WIDTH_MIDDLE: f32 = 0.0;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {

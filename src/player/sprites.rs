@@ -32,20 +32,10 @@ pub fn animate_sprite(
         &mut AnimationTimer,
         &mut TextureAtlas,
         &mut Player,
-        // &mut Transform,
     )>,
-    // mut animation_up: ResMut<AnimationUpDown>,
 ) {
     for (indices, mut timer, mut atlas, player) in &mut query {
         timer.tick(time.delta());
-
-        // if timer.just_finished() {
-        //     atlas.index = if atlas.index == indices.last {
-        //         indices.first
-        //     } else {
-        //         atlas.index + 1
-        //     }
-        // }
 
         match player.state {
             PlayerState::Idle => {

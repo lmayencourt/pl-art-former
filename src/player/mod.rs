@@ -45,7 +45,6 @@ pub struct EdgeGrab(bool);
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        // app.insert_resource(sprites::AnimationUpDown(true));
         app.add_systems(Startup, setup);
         // app.add_systems(Update, restart_event_handler);
         app.add_systems(
@@ -60,10 +59,6 @@ impl Plugin for PlayerPlugin {
         app.add_systems(FixedUpdate, sensing::facing_direction);
         app.add_systems(FixedUpdate, sensing::ground_detection);
         app.add_systems(FixedUpdate, sensing::edge_grab_detection);
-        // app.add_systems(
-        //     FixedUpdate,
-        //     movement::collide_event_handler.run_if(in_state(ApplicationState::InGame)),
-        // );
         app.add_systems(Update, sprites::animate_sprite);
         app.add_systems(Update, sprites::animate_direction);
     }
@@ -95,7 +90,6 @@ fn setup(
             Player {
                 state: PlayerState::Idle,
                 facing_direction: Vec2::X,
-                //     attitude: PlayerAttitude::InAir,
                 //     // jump_timer: Timer::from_seconds(0.4, TimerMode::Repeating),
             },
             Controller {
@@ -105,12 +99,6 @@ fn setup(
             Grounded(false),
             EdgeGrab(false),
             RigidBody::Dynamic,
-            // Collider,
-            // RigidBody {
-            //     position: Vec2::new(0.0, 40.0),
-            //     ..default()
-            // },
-            // ShowAabbGizmo { color: None },
         ))
         .insert(Collider::capsule(
             Vec2::new(0.0, -4.0),
