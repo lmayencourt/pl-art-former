@@ -73,16 +73,23 @@ pub fn edge_grab_detection(
     } else {
         edge_grab.0 = false;
     }
-
-    gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
+    // gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
 
     let ray_pos = transform.translation.truncate() + Vec2::new(0.0, 16.0);
-  
+    if !edge_grab.0 {
+        if let Some((_entity, _toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter) {
+            edge_grab.0 = true;
+        } else {
+            edge_grab.0 = false;
+        }
+    }
+    // gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
+
+    // Not an edge detection
+    let ray_pos = transform.translation.truncate() + Vec2::new(0.0, 24.0);
     if let Some((_entity, _toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter) {
-        edge_grab.0 = true;
-    } else {
+        // Collision above the player -> we are facing a wall and not an edge
         edge_grab.0 = false;
     }
-
-    gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
+    // gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
 }

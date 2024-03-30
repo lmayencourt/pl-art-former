@@ -26,7 +26,7 @@ const WORLD_WIDTH_MIDDLE: f32 = 0.0;
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_world);
-        app.add_systems(Update, debug_grid);
+        // app.add_systems(Update, debug_grid);
     }
 }
 
