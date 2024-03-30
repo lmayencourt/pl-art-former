@@ -58,7 +58,7 @@ pub fn animate_sprite(
                         atlas.index + 1
                     }
                 }
-            }
+            },
             PlayerState::Running => {
                 if timer.just_finished() {
                     atlas.index = if atlas.index < SPRITE_RUN_IDX.0 {
@@ -69,7 +69,7 @@ pub fn animate_sprite(
                         atlas.index + 1
                     }
                 }
-            }
+            },
             PlayerState::Walking => {
                 if timer.just_finished() {
                     atlas.index = if atlas.index < SPRITE_WALK_IDX.0 {
@@ -80,25 +80,25 @@ pub fn animate_sprite(
                         atlas.index + 1
                     }
                 }
-            }
+            },
             PlayerState::InAir => {
                 atlas.index = SPRITE_RUN_IDX.0 + 2;
-            } //     PlayerState::Dead => {
-              //         atlas.index = 6;
-              //         transform.rotation = Quat::from_rotation_x(std::f32::consts::PI);
-              //     }
+            },
+            PlayerState::OnEdge => {
+                atlas.index = SPRITE_WALK_IDX.0 + 5;
+            }
         }
 
         debug!("indice {}", atlas.index);
     }
 }
 
-pub fn animate_direction(mut query: Query<(&Velocity, &mut Sprite), With<Player>>) {
-    let (velocity, mut sprite) = query.single_mut();
+pub fn animate_direction(mut query: Query<(&Player, &mut Sprite)>) {
+    let (player, mut sprite) = query.single_mut();
 
-    if velocity.linvel.x > 25.0 {
+    if player.facing_direction == Vec2::X {
         sprite.flip_x = false;
-    } else if velocity.linvel.x < -25.0 {
+    } else {
         sprite.flip_x = true;
     }
 }

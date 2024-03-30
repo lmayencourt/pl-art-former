@@ -27,54 +27,17 @@ const RUNNING_FORCE: f32 = PLAYER_MASS / 2.0 * 10.0 * MAX_RUNNING_SPEED;
 const JUMP_SPEED: f32 = 600.0;
 const MAX_FALLING_SPEED: f32 = 600.0;
 
-pub fn ground_detection(
-    mut query: Query<(&Transform, Entity, &mut Grounded), With<Player>>,
-    rapier_ctx: Res<RapierContext>,
-    mut gizmos: Gizmos,
-) {
-    let (transform, entity, mut grounded) = query.single_mut();
-
-    // Ray casting for ground detection
-    let ray_pos = transform.translation.truncate() - Vec2::new(8.0, 0.0);
-    let ray_dir = Vec2::NEG_Y;
-    let max_toi = 2.5 * 16.0;
-    let solid = true;
-    let filter = QueryFilter::default().exclude_rigid_body(entity);
-
-    if let Some((_entity, _toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter) {
-        grounded.0 = true;
-    } else {
-        grounded.0 = false;
-    }
-
-    // gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
-
-    // Ray casting for ground detection
-    let ray_pos = transform.translation.truncate() + Vec2::new(8.0, 0.0);
-
-    if !grounded.0 {
-        if let Some((_entity, _toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter)
-        {
-            grounded.0 = true;
-        } else {
-            grounded.0 = false;
-        }
-    }
-
-    // gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
-}
-
 pub fn player_movement(
     mut query: Query<(&Controller, &mut Player)>,
-    body_query: Query<&Grounded, With<Player>>,
-    mut modifier_query: Query<(&mut ExternalForce, &mut Velocity), With<Player>>,
+    sense_query: Query<(&Grounded, &EdgeGrab), With<Player>>,
+    mut modifier_query: Query<(&mut ExternalForce, &mut Velocity, &mut GravityScale), With<Player>>,
 ) {
     let (controller, mut player) = query.single_mut();
-    let grounded = body_query.single();
-    let (mut force, mut velocity) = modifier_query.single_mut();
+    let (grounded, edge_grab) = sense_query.single();
+    let (mut force, mut velocity, mut gravity_scale) = modifier_query.single_mut();
 
     let grounded = grounded.0;
-    if !grounded {
+    if !grounded && !edge_grab.0 {
         player.state = PlayerState::InAir;
     }
 
@@ -142,7 +105,29 @@ pub fn player_movement(
                     jump(&controller, &mut velocity);
                 }
             }
-        }
+
+            if edge_grab.0 {
+                if controller.direction.x == player.facing_direction.x {
+                    player.state = PlayerState::OnEdge;
+                }
+            }
+        },
+        PlayerState::OnEdge => {
+            velocity.linvel = Vec2::ZERO;
+            gravity_scale.0 = 0.0;
+            if controller.action == Action::Jump {
+                // Wall jump
+                player.state = PlayerState::InAir;
+                jump(&controller, &mut velocity);
+                gravity_scale.0 = 16.0;
+            }
+
+            if controller.direction.x == -player.facing_direction.x {
+                // Let go
+                player.state = PlayerState::InAir;
+                gravity_scale.0 = 16.0;
+            }
+        },
     }
 }
 

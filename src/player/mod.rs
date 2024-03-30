@@ -8,10 +8,12 @@ use bevy_rapier2d::prelude::*;
 pub mod controller;
 pub mod movement;
 pub mod sprites;
+pub mod sensing;
 
 use controller::*;
 use movement::*;
 use sprites::*;
+use sensing::*;
 
 pub const SPRITE_HEIGHT: f32 = 16.0;
 pub const SPRITE_WIDTH: f32 = 16.0;
@@ -23,6 +25,7 @@ pub struct PlayerPlugin;
 #[derive(Component)]
 pub struct Player {
     state: PlayerState,
+    facing_direction: Vec2,
 }
 
 #[derive(Debug)]
@@ -31,10 +34,14 @@ enum PlayerState {
     Walking,
     Running,
     InAir,
+    OnEdge,
 }
 
 #[derive(Component)]
 pub struct Grounded(bool);
+
+#[derive(Component)]
+pub struct EdgeGrab(bool);
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
@@ -50,7 +57,9 @@ impl Plugin for PlayerPlugin {
             movement::player_movement, //.after(controller::keyboard_inputs)
                                        //.run_if(in_state(ApplicationState::InGame)),
         );
-        app.add_systems(FixedUpdate, movement::ground_detection);
+        app.add_systems(FixedUpdate, sensing::facing_direction);
+        app.add_systems(FixedUpdate, sensing::ground_detection);
+        app.add_systems(FixedUpdate, sensing::edge_grab_detection);
         // app.add_systems(
         //     FixedUpdate,
         //     movement::collide_event_handler.run_if(in_state(ApplicationState::InGame)),
@@ -85,6 +94,7 @@ fn setup(
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
             Player {
                 state: PlayerState::Idle,
+                facing_direction: Vec2::X,
                 //     attitude: PlayerAttitude::InAir,
                 //     // jump_timer: Timer::from_seconds(0.4, TimerMode::Repeating),
             },
@@ -93,6 +103,7 @@ fn setup(
                 action: Action::None,
             },
             Grounded(false),
+            EdgeGrab(false),
             RigidBody::Dynamic,
             // Collider,
             // RigidBody {
