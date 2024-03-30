@@ -3,7 +3,6 @@
  */
 
 /// Manage the rendering of the different player animations from the sprite-sheet
-
 use bevy::prelude::*;
 
 use crate::player::*;
@@ -84,8 +83,7 @@ pub fn animate_sprite(
             }
             PlayerState::InAir => {
                 atlas.index = SPRITE_RUN_IDX.0 + 2;
-            }
-              //     PlayerState::Dead => {
+            } //     PlayerState::Dead => {
               //         atlas.index = 6;
               //         transform.rotation = Quat::from_rotation_x(std::f32::consts::PI);
               //     }
@@ -95,9 +93,7 @@ pub fn animate_sprite(
     }
 }
 
-pub fn animate_direction(
-    mut query: Query<(&Velocity, &mut Sprite), With<Player>>,
-) {
+pub fn animate_direction(mut query: Query<(&Velocity, &mut Sprite), With<Player>>) {
     let (velocity, mut sprite) = query.single_mut();
 
     if velocity.linvel.x > 25.0 {

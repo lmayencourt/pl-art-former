@@ -3,7 +3,7 @@
  */
 
 use std::fs::File;
-use std::io::{BufReader, BufRead};
+use std::io::{BufRead, BufReader};
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -30,16 +30,36 @@ impl Plugin for WorldPlugin {
     }
 }
 
-fn debug_grid(mut gizmos:Gizmos) {
+fn debug_grid(mut gizmos: Gizmos) {
     for x in 0..512 {
-        if x%TILE_SIZE as u32 == 0 {
-            gizmos.line_2d(Vec2::new(WORLD_LEFT - TILE_SIZE/2.0, WORLD_TOP + TILE_SIZE/2.0 - (x as f32)), Vec2::new(WORLD_RIGHT - TILE_SIZE/2.0, WORLD_TOP + TILE_SIZE/2.0 - (x as f32)), Color::GRAY);
+        if x % TILE_SIZE as u32 == 0 {
+            gizmos.line_2d(
+                Vec2::new(
+                    WORLD_LEFT - TILE_SIZE / 2.0,
+                    WORLD_TOP + TILE_SIZE / 2.0 - (x as f32),
+                ),
+                Vec2::new(
+                    WORLD_RIGHT - TILE_SIZE / 2.0,
+                    WORLD_TOP + TILE_SIZE / 2.0 - (x as f32),
+                ),
+                Color::GRAY,
+            );
         }
     }
 
     for y in 0..1024 {
-        if y%TILE_SIZE as u32 == 0 {
-            gizmos.line_2d(Vec2::new(WORLD_LEFT - TILE_SIZE/2.0 + (y as f32), WORLD_TOP + TILE_SIZE/2.0), Vec2::new(WORLD_LEFT - TILE_SIZE/2.0 + (y as f32), WORLD_BOTTOM - TILE_SIZE/2.0), Color::GRAY);
+        if y % TILE_SIZE as u32 == 0 {
+            gizmos.line_2d(
+                Vec2::new(
+                    WORLD_LEFT - TILE_SIZE / 2.0 + (y as f32),
+                    WORLD_TOP + TILE_SIZE / 2.0,
+                ),
+                Vec2::new(
+                    WORLD_LEFT - TILE_SIZE / 2.0 + (y as f32),
+                    WORLD_BOTTOM - TILE_SIZE / 2.0,
+                ),
+                Color::GRAY,
+            );
         }
     }
 }
@@ -53,9 +73,13 @@ fn setup_world(mut commands: Commands) {
         println!("line is {:?}", line);
         if let Ok(line) = line {
             for (x, char) in line.chars().enumerate() {
-                let translation = Vec3::new(WORLD_LEFT + x as f32 *TILE_SIZE, WORLD_TOP - y as f32 *TILE_SIZE, 0.0);
+                let translation = Vec3::new(
+                    WORLD_LEFT + x as f32 * TILE_SIZE,
+                    WORLD_TOP - y as f32 * TILE_SIZE,
+                    0.0,
+                );
                 let scale = Vec3::new(TILE_SIZE, TILE_SIZE, 0.0);
-                if char == '#'{
+                if char == '#' {
                     spawn_wall(&mut commands, translation, scale);
                 }
             }
@@ -64,8 +88,8 @@ fn setup_world(mut commands: Commands) {
 }
 
 fn spawn_wall(commands: &mut Commands, translation: Vec3, scale: Vec3) {
-    commands.spawn((
-        SpriteBundle {
+    commands
+        .spawn((SpriteBundle {
             transform: Transform {
                 translation: translation,
                 scale: scale,
@@ -76,8 +100,7 @@ fn spawn_wall(commands: &mut Commands, translation: Vec3, scale: Vec3) {
                 ..default()
             },
             ..default()
-        },
-    ))
-    .insert(RigidBody::Fixed)
-    .insert(Collider::cuboid(0.5, 0.5));
+        },))
+        .insert(RigidBody::Fixed)
+        .insert(Collider::cuboid(0.5, 0.5));
 }

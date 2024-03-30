@@ -70,41 +70,46 @@ fn setup(
         TextureAtlasLayout::from_grid(Vec2::new(SPRITE_WIDTH, SPRITE_HEIGHT), 8, 3, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let animation_indices = AnimationIndices { first: 0, last: 7 };
-    commands.spawn((
-        SpriteSheetBundle {
-            texture,
-            atlas: TextureAtlas {
-                layout: texture_atlas_layout,
-                index: animation_indices.first,
+    commands
+        .spawn((
+            SpriteSheetBundle {
+                texture,
+                atlas: TextureAtlas {
+                    layout: texture_atlas_layout,
+                    index: animation_indices.first,
+                },
+                transform: Transform::from_xyz(0.0, -20.0, 0.0).with_scale(Vec3::splat(4.0)),
+                ..default()
             },
-            transform: Transform::from_xyz(0.0, -20.0, 0.0).with_scale(Vec3::splat(4.0)),
-            ..default()
-        },
-        animation_indices,
-        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
-        Player {
-            state: PlayerState::Idle,
-            //     attitude: PlayerAttitude::InAir,
-            //     // jump_timer: Timer::from_seconds(0.4, TimerMode::Repeating),
-        },
-        Controller {
-            direction: Vec2::ZERO,
-            action: Action::None,
-        },
-        Grounded(false),
-        RigidBody::Dynamic,
-        // Collider,
-        // RigidBody {
-        //     position: Vec2::new(0.0, 40.0),
-        //     ..default()
-        // },
-        // ShowAabbGizmo { color: None },
-    ))
-    .insert(Collider::capsule(Vec2::new(0.0, -4.0), Vec2::new(0.0, 4.0), 4.0))
-    .insert(ColliderMassProperties::Mass(PLAYER_MASS))
-    .insert(Ccd::enabled())
-    .insert(LockedAxes::ROTATION_LOCKED)
-    .insert(Velocity::default())
-    .insert(GravityScale(16.0))
-    .insert(ExternalForce::default());
+            animation_indices,
+            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            Player {
+                state: PlayerState::Idle,
+                //     attitude: PlayerAttitude::InAir,
+                //     // jump_timer: Timer::from_seconds(0.4, TimerMode::Repeating),
+            },
+            Controller {
+                direction: Vec2::ZERO,
+                action: Action::None,
+            },
+            Grounded(false),
+            RigidBody::Dynamic,
+            // Collider,
+            // RigidBody {
+            //     position: Vec2::new(0.0, 40.0),
+            //     ..default()
+            // },
+            // ShowAabbGizmo { color: None },
+        ))
+        .insert(Collider::capsule(
+            Vec2::new(0.0, -4.0),
+            Vec2::new(0.0, 4.0),
+            4.0,
+        ))
+        .insert(ColliderMassProperties::Mass(PLAYER_MASS))
+        .insert(Ccd::enabled())
+        .insert(LockedAxes::ROTATION_LOCKED)
+        .insert(Velocity::default())
+        .insert(GravityScale(16.0))
+        .insert(ExternalForce::default());
 }

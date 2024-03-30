@@ -22,7 +22,7 @@ use crate::player::*;
 
 const MAX_RUNNING_SPEED: f32 = 300.0;
 // Force to apply to reach MAX_RUNNING_SPEED in 2 secs
-const RUNNING_FORCE: f32 = PLAYER_MASS/2.0 * 10.0 * MAX_RUNNING_SPEED;
+const RUNNING_FORCE: f32 = PLAYER_MASS / 2.0 * 10.0 * MAX_RUNNING_SPEED;
 
 const JUMP_SPEED: f32 = 600.0;
 const MAX_FALLING_SPEED: f32 = 600.0;
@@ -53,7 +53,8 @@ pub fn ground_detection(
     let ray_pos = transform.translation.truncate() + Vec2::new(8.0, 0.0);
 
     if !grounded.0 {
-        if let Some((_entity, _toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter) {
+        if let Some((_entity, _toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter)
+        {
             grounded.0 = true;
         } else {
             grounded.0 = false;
@@ -92,13 +93,13 @@ pub fn player_movement(
             if controller.action == Action::Jump {
                 jump(&controller, &mut velocity);
             }
-        },
-        PlayerState::Walking => {},
+        }
+        PlayerState::Walking => {}
         PlayerState::Running => {
             if controller.direction.x != 0.0 {
                 apply_horizontal_force(&controller, &mut force, &mut velocity);
             } else if controller.action == Action::None {
-                stop_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE*2.0);
+                stop_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE * 2.0);
 
                 if velocity.linvel.x < 20.0 && velocity.linvel.x > -20.0 {
                     player.state = PlayerState::Idle;
@@ -108,7 +109,7 @@ pub fn player_movement(
             if controller.action == Action::Jump {
                 jump(&controller, &mut velocity);
             }
-        },
+        }
         PlayerState::InAir => {
             // Keep X movement control
             if controller.direction.x != 0.0 || controller.action == Action::Jump {
@@ -141,11 +142,15 @@ pub fn player_movement(
                     jump(&controller, &mut velocity);
                 }
             }
-        },
+        }
     }
 }
 
-fn apply_horizontal_force(controller: &Controller, force: &mut ExternalForce, velocity: &mut Velocity) {
+fn apply_horizontal_force(
+    controller: &Controller,
+    force: &mut ExternalForce,
+    velocity: &mut Velocity,
+) {
     force.force.x = controller.direction.x * RUNNING_FORCE;
 
     if velocity.linvel.x > MAX_RUNNING_SPEED {
