@@ -7,13 +7,12 @@ use bevy::prelude::*;
 
 use crate::player::*;
 
-pub fn facing_direction(mut query: Query<(&Velocity, &mut Sprite, &mut Player)>) {
-    let (velocity, mut sprite, mut player) = query.single_mut();
-
-    if velocity.linvel.x > 25.0 {
-        player.facing_direction = Vec2::X;
-    } else if velocity.linvel.x < -25.0 {
-        player.facing_direction = Vec2::NEG_X;
+pub fn facing_direction(mut query: Query<(&Controller, &mut Player)>) {
+    let (controller, mut player) = query.single_mut();
+    if controller.direction.x != 0.0 {
+        if player.facing_direction.x != controller.direction.x {
+            player.facing_direction.x = controller.direction.x;
+        }
     }
 }
 
