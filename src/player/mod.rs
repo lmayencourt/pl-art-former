@@ -77,7 +77,7 @@ fn setup(
                 layout: texture_atlas_layout,
                 index: animation_indices.first,
             },
-            transform: Transform::from_xyz(0.0, 40.0, 0.0).with_scale(Vec3::splat(4.0)),
+            transform: Transform::from_xyz(0.0, -20.0, 0.0).with_scale(Vec3::splat(4.0)),
             ..default()
         },
         animation_indices,
