@@ -37,7 +37,7 @@ pub fn keyboard_inputs(
     }
 
     // Jump inputs
-    if keyboard_input.pressed(KeyCode::ArrowUp) {
+    if keyboard_input.pressed(KeyCode::Space) {
         controller.direction += Vec2::Y;
         controller.action = Action::Jump;
     }
