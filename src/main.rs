@@ -11,9 +11,15 @@ mod world;
 use player::PlayerPlugin;
 use world::WorldPlugin;
 
+#[derive(Resource)]
+struct DebugGizmos(bool);
+
 fn main() {
-    println!("Flappy bird made with Bevy!");
+    // let debug_gizmos = DebugGizmos(true);
+    let debug_gizmos = DebugGizmos(false);
+
     App::new()
+        .insert_resource(debug_gizmos)
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest())) // prevents blurry sprites
         // .add_plugins(WorldInspectorPlugin::new())
         .add_systems(Update, bevy::window::close_on_esc)

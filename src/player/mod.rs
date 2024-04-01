@@ -101,9 +101,9 @@ fn setup(
             RigidBody::Dynamic,
         ))
         .insert(Collider::capsule(
-            Vec2::new(0.0, -4.0),
+            Vec2::new(0.0, -5.0),
             Vec2::new(0.0, 4.0),
-            4.0,
+            2.0,
         ))
         .insert(ColliderMassProperties::Mass(PLAYER_MASS))
         .insert(Ccd::enabled())
