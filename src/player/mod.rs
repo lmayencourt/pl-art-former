@@ -96,6 +96,7 @@ fn setup(
                 direction: Vec2::ZERO,
                 action: Action::None,
             },
+            InhibitionTimer(Timer::from_seconds(0.3, TimerMode::Once)),
             Grounded(false),
             EdgeGrab(false),
             RigidBody::Dynamic,

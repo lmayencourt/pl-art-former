@@ -20,20 +20,24 @@ use bevy_rapier2d::prelude::*;
 //  use crate::physics::{CollideEvent, CollideWith};
 use crate::player::*;
 
-const MAX_RUNNING_SPEED: f32 = 300.0;
+const MAX_RUNNING_SPEED: f32 = 250.0;
 // Force to apply to reach MAX_RUNNING_SPEED in 2 secs
-const RUNNING_FORCE: f32 = PLAYER_MASS / 2.0 * 10.0 * MAX_RUNNING_SPEED;
+const RUNNING_FORCE: f32 = PLAYER_MASS / 2.0 * 20.0 * MAX_RUNNING_SPEED;
 
 const JUMP_SPEED: f32 = 600.0;
 const MAX_FALLING_SPEED: f32 = 600.0;
 
+#[derive(Component, Deref, DerefMut)]
+pub struct InhibitionTimer(pub Timer);
+
 pub fn player_movement(
     mut query: Query<(&Controller, &mut Player)>,
-    sense_query: Query<(&Grounded, &EdgeGrab), With<Player>>,
+    mut sense_query: Query<(&Grounded, &EdgeGrab, &mut InhibitionTimer), With<Player>>,
     mut modifier_query: Query<(&mut ExternalForce, &mut Velocity, &mut GravityScale), With<Player>>,
+    time: Res<Time>,
 ) {
     let (controller, mut player) = query.single_mut();
-    let (grounded, edge_grab) = sense_query.single();
+    let (grounded, edge_grab, mut inhibition_timer) = sense_query.single_mut();
     let (mut force, mut velocity, mut gravity_scale) = modifier_query.single_mut();
 
     let grounded = grounded.0;
@@ -46,6 +50,12 @@ pub fn player_movement(
     // info!("Velocity {:?}", velocity);
 
     force.force = Vec2::ZERO;
+
+    // Prevent movement control for a given amount of time
+    inhibition_timer.tick(time.delta());
+    if !inhibition_timer.finished() {
+        return;
+    }
 
     match player.state {
         PlayerState::Idle => {
@@ -111,11 +121,12 @@ pub fn player_movement(
             if controller.action == Action::Jump {
                 // Wall jump
                 player.state = PlayerState::InAir;
-                jump(&controller, &mut velocity);
+                wall_jump(&player.facing_direction, &mut velocity);
+                inhibition_timer.reset();
                 gravity_scale.0 = 16.0;
             }
 
-            if controller.direction.x == -player.facing_direction.x {
+            if controller.direction.x != player.facing_direction.x {
                 // Let go
                 player.state = PlayerState::InAir;
                 gravity_scale.0 = 16.0;
@@ -151,6 +162,11 @@ fn stop_horizontal_velocity(velocity: &mut Velocity, force: &mut ExternalForce, 
 
 fn jump(controller: &Controller, velocity: &mut Velocity) {
     velocity.linvel.y = controller.direction.y * JUMP_SPEED;
+}
+
+fn wall_jump(direction: &Vec2, velocity: &mut Velocity) {
+    velocity.linvel.y =  JUMP_SPEED;
+    velocity.linvel.x = -direction.x * MAX_RUNNING_SPEED;
 }
 
 fn stop_vertical_velocity(velocity: &mut Velocity, force: &mut ExternalForce, max_speed: f32) {
