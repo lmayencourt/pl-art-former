@@ -51,16 +51,17 @@ impl Plugin for PlayerPlugin {
             FixedUpdate,
             controller::keyboard_inputs, //.run_if.(in_state(ApplicationState::InGame)),
         );
+        app.add_systems(FixedUpdate, sensing::facing_direction.before(player_movement));
+        app.add_systems(FixedUpdate, sensing::ground_detection.before(player_movement));
+        app.add_systems(FixedUpdate, sensing::edge_grab_detection.before(player_movement));
         app.add_systems(
             FixedUpdate,
-            movement::player_movement, //.after(controller::keyboard_inputs)
+            movement::player_movement
+                .after(controller::keyboard_inputs),
                                        //.run_if(in_state(ApplicationState::InGame)),
         );
-        app.add_systems(FixedUpdate, sensing::facing_direction);
-        app.add_systems(FixedUpdate, sensing::ground_detection);
-        app.add_systems(FixedUpdate, sensing::edge_grab_detection);
-        app.add_systems(Update, sprites::animate_sprite);
-        app.add_systems(Update, sprites::animate_direction);
+        app.add_systems(Update, sprites::animate_sprite.after(player_movement));
+        app.add_systems(Update, sprites::animate_direction.after(player_movement));
     }
 }
 
