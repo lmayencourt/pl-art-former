@@ -2,11 +2,12 @@
  * Copyright (c) 2024 Louis Mayencourt
  */
 
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+
+pub mod levels;
+
+use levels::LEVEL_TRAINING;
 
 pub struct WorldPlugin;
 
@@ -78,35 +79,32 @@ fn setup_world(
         TextureAtlasLayout::from_grid(Vec2::new(TILE_SIZE, TILE_SIZE), 4, 3, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
-    let file = File::open("assets/map.txt").expect("No world map found in assets/ folder");
-    for (y, line) in BufReader::new(file).lines().enumerate() {
+    for (y, line) in LEVEL_TRAINING.lines().enumerate() {
         println!("line is {:?}", line);
-        if let Ok(line) = line {
-            for (x, char) in line.chars().enumerate() {
-                let translation = Vec3::new(
-                    WORLD_LEFT + x as f32 * TILE_SCALED,
-                    WORLD_TOP - y as f32 * TILE_SCALED,
-                    0.0,
-                );
-                let scale = Vec3::new(TILE_SCALER, TILE_SCALER, 0.0);
-                let idx = if char == 'B' {
-                    Some(0)
-                } else if char == 'R' {
-                    Some(1)
-                } else if char == 'G' {
-                    Some(2)
-                } else if char == 'D' {
-                    Some(3)
-                } else {
-                    None
+        for (x, char) in line.chars().enumerate() {
+            let translation = Vec3::new(
+                WORLD_LEFT + x as f32 * TILE_SCALED,
+                WORLD_TOP - y as f32 * TILE_SCALED,
+                0.0,
+            );
+            let scale = Vec3::new(TILE_SCALER, TILE_SCALER, 0.0);
+            let idx = if char == 'B' {
+                Some(0)
+            } else if char == 'R' {
+                Some(1)
+            } else if char == 'G' {
+                Some(2)
+            } else if char == 'D' {
+                Some(3)
+            } else {
+                None
+            };
+            if let Some(idx) = idx {
+                let atlas = TextureAtlas {
+                    layout: texture_atlas_layout.clone(),
+                    index: idx,
                 };
-                if let Some(idx) = idx {
-                    let atlas = TextureAtlas {
-                        layout: texture_atlas_layout.clone(),
-                        index: idx,
-                    };
-                    spawn_wall(&mut commands, translation, scale, texture.clone(), atlas);
-                }
+                spawn_wall(&mut commands, translation, scale, texture.clone(), atlas);
             }
         }
     }
