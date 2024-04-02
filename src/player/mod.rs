@@ -28,17 +28,22 @@ pub struct Player {
     facing_direction: Vec2,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum PlayerState {
     Idle,
     Walking,
     Running,
     InAir,
     OnEdge,
+    LeavingEdge,
+    OnWall,
 }
 
 #[derive(Component)]
 pub struct Grounded(bool);
+
+#[derive(Component)]
+pub struct OnWall(bool);
 
 #[derive(Component)]
 pub struct EdgeGrab(bool);
@@ -53,6 +58,7 @@ impl Plugin for PlayerPlugin {
         );
         app.add_systems(FixedUpdate, sensing::facing_direction.before(player_movement));
         app.add_systems(FixedUpdate, sensing::ground_detection.before(player_movement));
+        app.add_systems(FixedUpdate, sensing::wall_detection.before(player_movement));
         app.add_systems(FixedUpdate, sensing::edge_grab_detection.before(player_movement));
         app.add_systems(
             FixedUpdate,
@@ -98,7 +104,9 @@ fn setup(
                 action: Action::None,
             },
             InhibitionTimer(Timer::from_seconds(0.3, TimerMode::Once)),
+            CoyoteTimer(Timer::from_seconds(0.1, TimerMode::Once)),
             Grounded(false),
+            OnWall(false),
             EdgeGrab(false),
             RigidBody::Dynamic,
         ))

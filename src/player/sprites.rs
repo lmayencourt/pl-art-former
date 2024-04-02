@@ -74,7 +74,7 @@ pub fn animate_sprite(
             PlayerState::InAir => {
                 atlas.index = SPRITE_RUN_IDX.0 + 2;
             },
-            PlayerState::OnEdge => {
+            PlayerState::OnEdge | PlayerState::LeavingEdge | PlayerState::OnWall => {
                 atlas.index = SPRITE_WALK_IDX.0 + 5;
             }
         }

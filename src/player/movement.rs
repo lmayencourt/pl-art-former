@@ -84,6 +84,8 @@ pub fn player_movement(
             }
         }
         PlayerState::InAir => {
+            gravity_scale.0 = 16.0;
+
             // Keep X movement control
             if controller.direction.x != 0.0 || controller.action == Action::Jump {
                 apply_horizontal_force(&controller, &mut force, &mut velocity);
@@ -107,6 +109,8 @@ pub fn player_movement(
                 } else if controller.action == Action::Jump {
                     jump(&controller, &mut velocity);
                 }
+            } else if on_wall.0 {
+                player.state = PlayerState::OnWall;
             }
 
             if edge_grab.0 {
@@ -118,20 +122,46 @@ pub fn player_movement(
         PlayerState::OnEdge => {
             velocity.linvel = Vec2::ZERO;
             gravity_scale.0 = 0.0;
+            
             if controller.action == Action::Jump {
-                // Wall jump
-                player.state = PlayerState::InAir;
-                wall_jump(&player.facing_direction, &mut velocity);
-                inhibition_timer.reset();
-                gravity_scale.0 = 16.0;
+                player.state = PlayerState::LeavingEdge;
+                jump(&controller, &mut velocity);
+                coyote_timer.reset();
             }
 
             if controller.direction.x != player.facing_direction.x {
                 // Let go
-                player.state = PlayerState::InAir;
-                gravity_scale.0 = 16.0;
+                player.state = PlayerState::OnWall;
             }
         },
+        PlayerState::LeavingEdge => {
+            coyote_timer.tick(time.delta());
+            if coyote_timer.finished() {
+                // Wall jump
+                // player.state = PlayerState::InAir;
+                if player.facing_direction.x == -controller.direction.x {
+                    velocity.linvel.x = controller.direction.x * MAX_RUNNING_SPEED;
+                    inhibition_timer.reset();
+                }
+            }
+        },
+        PlayerState::OnWall => {
+            // friction on the wall counter gravity force
+            if velocity.linvel.y < 0.0 {
+                gravity_scale.0 = 8.0;
+            }
+
+            if controller.action == Action::Jump {
+                info!("Wall jump!");
+                // player.state = PlayerState::InAir;
+                wall_jump(&player.facing_direction, &mut velocity);
+                inhibition_timer.reset();
+            }
+
+            if grounded {
+                player.state = PlayerState::Idle;
+            }
+        }
     }
 }
 
