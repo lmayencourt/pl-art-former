@@ -102,6 +102,7 @@ fn setup(
             Controller {
                 direction: Vec2::ZERO,
                 action: Action::None,
+                jump_released: true,
             },
             InhibitionTimer(Timer::from_seconds(0.3, TimerMode::Once)),
             CoyoteTimer(Timer::from_seconds(0.1, TimerMode::Once)),

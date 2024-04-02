@@ -30,18 +30,22 @@ const MAX_FALLING_SPEED: f32 = 600.0;
 #[derive(Component, Deref, DerefMut)]
 pub struct InhibitionTimer(pub Timer);
 
+#[derive(Component, Deref, DerefMut)]
+pub struct CoyoteTimer(pub Timer);
+
 pub fn player_movement(
     mut query: Query<(&Controller, &mut Player)>,
-    mut sense_query: Query<(&Grounded, &EdgeGrab, &mut InhibitionTimer), With<Player>>,
+    sense_query: Query<(&Grounded, &OnWall, &EdgeGrab), With<Player>>,
     mut modifier_query: Query<(&mut ExternalForce, &mut Velocity, &mut GravityScale), With<Player>>,
+    mut timer_query: Query<(&mut InhibitionTimer, &mut CoyoteTimer), With<Player>>,
     time: Res<Time>,
 ) {
     let (controller, mut player) = query.single_mut();
-    let (grounded, edge_grab, mut inhibition_timer) = sense_query.single_mut();
+    let (grounded, on_wall, edge_grab) = sense_query.single();
     let (mut force, mut velocity, mut gravity_scale) = modifier_query.single_mut();
+    let (mut inhibition_timer, mut coyote_timer) = timer_query.single_mut();
 
-    let grounded = grounded.0;
-    if !grounded && !edge_grab.0 {
+    if !grounded.0 && !edge_grab.0 && !on_wall.0{
         player.state = PlayerState::InAir;
     }
 
@@ -101,7 +105,7 @@ pub fn player_movement(
                 velocity.linvel.y = -MAX_FALLING_SPEED;
             }
 
-            if grounded {
+            if grounded.0 {
                 if controller.action == Action::None {
                     player.state = PlayerState::Idle;
                 } else if controller.direction.x != 0.0 {
@@ -154,11 +158,11 @@ pub fn player_movement(
             if controller.action == Action::Jump {
                 info!("Wall jump!");
                 // player.state = PlayerState::InAir;
-                wall_jump(&player.facing_direction, &mut velocity);
+                wall_jump(controller.jump_released, &player.facing_direction, &mut velocity);
                 inhibition_timer.reset();
             }
 
-            if grounded {
+            if grounded.0 {
                 player.state = PlayerState::Idle;
             }
         }
@@ -191,12 +195,16 @@ fn stop_horizontal_velocity(velocity: &mut Velocity, force: &mut ExternalForce, 
 }
 
 fn jump(controller: &Controller, velocity: &mut Velocity) {
-    velocity.linvel.y = controller.direction.y * JUMP_SPEED;
+    if controller.jump_released {
+        velocity.linvel.y = controller.direction.y * JUMP_SPEED;
+    }
 }
 
-fn wall_jump(direction: &Vec2, velocity: &mut Velocity) {
-    velocity.linvel.y =  JUMP_SPEED;
-    velocity.linvel.x = -direction.x * MAX_RUNNING_SPEED;
+fn wall_jump(can_jump: bool, direction: &Vec2, velocity: &mut Velocity) {
+    if can_jump {
+        velocity.linvel.y =  JUMP_SPEED;
+        velocity.linvel.x = -direction.x * MAX_RUNNING_SPEED;
+    }
 }
 
 fn stop_vertical_velocity(velocity: &mut Velocity, force: &mut ExternalForce, max_speed: f32) {

@@ -7,7 +7,7 @@
 /// with a keyboard or a game-controller.
 use bevy::prelude::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Action {
     None,
     Jump,
@@ -17,6 +17,7 @@ pub enum Action {
 pub struct Controller {
     pub direction: Vec2,
     pub action: Action,
+    pub jump_released: bool,
 }
 
 /// Controller implementation for keyboard
@@ -40,5 +41,9 @@ pub fn keyboard_inputs(
     if keyboard_input.pressed(KeyCode::Space) {
         controller.direction += Vec2::Y;
         controller.action = Action::Jump;
+        controller.jump_released = false;
+    }
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        controller.jump_released = true;
     }
 }
