@@ -45,13 +45,28 @@ pub fn player_movement(
     let (mut force, mut velocity, mut gravity_scale) = modifier_query.single_mut();
     let (mut inhibition_timer, mut coyote_timer) = timer_query.single_mut();
 
-    if !grounded.0 && !edge_grab.0 && !on_wall.0{
+    let player_still: bool = velocity.linvel.x < 20.0 && velocity.linvel.x > -20.0 && controller.direction.x == 0.0;
+
+    if grounded.0 && player_still {
+        player.state = PlayerState::Idle;
+    } else if grounded.0 && !player_still {
+        player.state = PlayerState::Running;
+    } else if !grounded.0 && !edge_grab.0 && !on_wall.0{
         player.state = PlayerState::InAir;
+    } else if !grounded.0 && edge_grab.0 {
+        if controller.direction.x == player.facing_direction.x {
+            player.state = PlayerState::OnEdge;
+        } else {
+            player.state = PlayerState::OnWall;
+        }
+    } else if !grounded.0 && !edge_grab.0 && on_wall.0 {
+        player.state = PlayerState::OnWall;
     }
 
     // info!("Player state {:?}", player.state);
     // info!("Control state {:?}", controller);
     // info!("Velocity {:?}", velocity);
+    // info!("Sensing grounded {} on_wall {}", grounded.0, on_wall.0);
 
     force.force = Vec2::ZERO;
 
@@ -61,12 +76,9 @@ pub fn player_movement(
         return;
     }
 
+    // Apply action according to player state
     match player.state {
         PlayerState::Idle => {
-            if controller.direction.x != 0.0 {
-                player.state = PlayerState::Running;
-            }
-
             if controller.action == Action::Jump {
                 jump(&controller, &mut velocity);
             }
@@ -77,10 +89,6 @@ pub fn player_movement(
                 apply_horizontal_force(&controller, &mut force, &mut velocity);
             } else if controller.action == Action::None {
                 stop_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE * 2.0);
-
-                if velocity.linvel.x < 20.0 && velocity.linvel.x > -20.0 {
-                    player.state = PlayerState::Idle;
-                }
             }
 
             if controller.action == Action::Jump {
@@ -104,24 +112,6 @@ pub fn player_movement(
             if velocity.linvel.y < -MAX_FALLING_SPEED {
                 velocity.linvel.y = -MAX_FALLING_SPEED;
             }
-
-            if grounded.0 {
-                if controller.action == Action::None {
-                    player.state = PlayerState::Idle;
-                } else if controller.direction.x != 0.0 {
-                    player.state = PlayerState::Running;
-                } else if controller.action == Action::Jump {
-                    jump(&controller, &mut velocity);
-                }
-            } else if on_wall.0 {
-                player.state = PlayerState::OnWall;
-            }
-
-            if edge_grab.0 {
-                if controller.direction.x == player.facing_direction.x {
-                    player.state = PlayerState::OnEdge;
-                }
-            }
         },
         PlayerState::OnEdge => {
             velocity.linvel = Vec2::ZERO;
@@ -131,11 +121,6 @@ pub fn player_movement(
                 player.state = PlayerState::LeavingEdge;
                 jump(&controller, &mut velocity);
                 coyote_timer.reset();
-            }
-
-            if controller.direction.x != player.facing_direction.x {
-                // Let go
-                player.state = PlayerState::OnWall;
             }
         },
         PlayerState::LeavingEdge => {
@@ -160,10 +145,6 @@ pub fn player_movement(
                 // player.state = PlayerState::InAir;
                 wall_jump(controller.jump_released, &player.facing_direction, &mut velocity);
                 inhibition_timer.reset();
-            }
-
-            if grounded.0 {
-                player.state = PlayerState::Idle;
             }
         }
     }
