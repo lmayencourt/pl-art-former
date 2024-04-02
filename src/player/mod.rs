@@ -102,8 +102,10 @@ fn setup(
             Controller {
                 direction: Vec2::ZERO,
                 action: Action::None,
+                previous_action: Action::None,
                 jump_released: true,
             },
+            KeyRestTimeout(Timer::from_seconds(0.15, TimerMode::Once)),
             InhibitionTimer(Timer::from_seconds(0.3, TimerMode::Once)),
             CoyoteTimer(Timer::from_seconds(0.1, TimerMode::Once)),
             Grounded(false),

@@ -50,7 +50,7 @@ pub fn player_movement(
     }
 
     // info!("Player state {:?}", player.state);
-    // info!("Control state {:?}", controller.direction);
+    // info!("Control state {:?}", controller);
     // info!("Velocity {:?}", velocity);
 
     force.force = Vec2::ZERO;
