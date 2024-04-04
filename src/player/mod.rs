@@ -105,7 +105,7 @@ fn setup(
                 previous_action: Action::None,
                 jump_released: true,
             },
-            KeyRestTimeout(Timer::from_seconds(0.15, TimerMode::Once)),
+            KeyRestTimeout(Timer::from_seconds(0.1, TimerMode::Once)),
             InhibitionTimer(Timer::from_seconds(0.3, TimerMode::Once)),
             CoyoteTimer(Timer::from_seconds(0.1, TimerMode::Once)),
             Grounded(false),

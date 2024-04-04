@@ -26,6 +26,7 @@ const RUNNING_FORCE: f32 = PLAYER_MASS / 2.0 * 20.0 * MAX_RUNNING_SPEED;
 
 const JUMP_SPEED: f32 = 600.0;
 const MAX_FALLING_SPEED: f32 = 600.0;
+const MAX_WALL_SLIDING_SPEED: f32 = 200.0;
 
 #[derive(Component, Deref, DerefMut)]
 pub struct InhibitionTimer(pub Timer);
@@ -99,7 +100,7 @@ pub fn player_movement(
             gravity_scale.0 = 16.0;
 
             // Keep X movement control
-            if controller.direction.x != 0.0 || controller.action == Action::Jump {
+            if controller.direction.x != 0.0 {
                 apply_horizontal_force(&controller, &mut force, &mut velocity);
             } else if controller.action == Action::None {
                 stop_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE);
@@ -127,22 +128,19 @@ pub fn player_movement(
             coyote_timer.tick(time.delta());
             if coyote_timer.finished() {
                 // Wall jump
-                // player.state = PlayerState::InAir;
                 if player.facing_direction.x == -controller.direction.x {
-                    velocity.linvel.x = controller.direction.x * MAX_RUNNING_SPEED;
+                    wall_jump(controller.jump_released, &player.facing_direction, &mut velocity);
                     inhibition_timer.reset();
                 }
             }
         },
         PlayerState::OnWall => {
-            // friction on the wall counter gravity force
-            if velocity.linvel.y < 0.0 {
-                gravity_scale.0 = 8.0;
+            gravity_scale.0 = 16.0;
+            if velocity.linvel.y < -MAX_WALL_SLIDING_SPEED {
+                velocity.linvel.y = -MAX_WALL_SLIDING_SPEED;
             }
 
             if controller.action == Action::Jump {
-                info!("Wall jump!");
-                // player.state = PlayerState::InAir;
                 wall_jump(controller.jump_released, &player.facing_direction, &mut velocity);
                 inhibition_timer.reset();
             }
@@ -183,7 +181,7 @@ fn jump(controller: &Controller, velocity: &mut Velocity) {
 
 fn wall_jump(can_jump: bool, direction: &Vec2, velocity: &mut Velocity) {
     if can_jump {
-        velocity.linvel.y =  JUMP_SPEED;
+        velocity.linvel.y = JUMP_SPEED;
         velocity.linvel.x = -direction.x * MAX_RUNNING_SPEED;
     }
 }
