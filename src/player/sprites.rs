@@ -11,6 +11,7 @@ use crate::player::*;
 pub const SPRITE_RUN_IDX: (usize, usize) = (0, 7);
 pub const SPRITE_WALK_IDX: (usize, usize) = (8, 15);
 pub const SPRITE_IDLE_IDX: (usize, usize) = (16, 23);
+pub const SPRITE_JUMP_IDX: (usize, usize) = (25, 26);
 
 #[derive(Component)]
 pub struct AnimationIndices {
@@ -106,7 +107,15 @@ pub fn animate_sprite(
                 }
             },
             PlayerState::InAir => {
-                atlas.index = SPRITE_RUN_IDX.0 + 2;
+                if timer.just_finished() {
+                    atlas.index = if atlas.index < SPRITE_JUMP_IDX.0 {
+                        SPRITE_JUMP_IDX.0
+                    } else if atlas.index >= SPRITE_JUMP_IDX.1 {
+                        SPRITE_JUMP_IDX.1
+                    } else {
+                        atlas.index + 1
+                    }
+                }
             },
             PlayerState::OnEdge | PlayerState::OnWall => {
                 atlas.index = SPRITE_WALK_IDX.0 + 5;
