@@ -119,19 +119,8 @@ pub fn player_movement(
             gravity_scale.0 = 0.0;
             
             if controller.action == Action::Jump {
-                player.state = PlayerState::LeavingEdge;
                 jump(&controller, &mut velocity);
-                coyote_timer.reset();
-            }
-        },
-        PlayerState::LeavingEdge => {
-            coyote_timer.tick(time.delta());
-            if coyote_timer.finished() {
-                // Wall jump
-                if player.facing_direction.x == -controller.direction.x {
-                    wall_jump(controller.jump_released, &player.facing_direction, &mut velocity);
-                    inhibition_timer.reset();
-                }
+                // coyote_timer.reset();
             }
         },
         PlayerState::OnWall => {

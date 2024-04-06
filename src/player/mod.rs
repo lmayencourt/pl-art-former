@@ -36,7 +36,6 @@ enum PlayerState {
     Running,
     InAir,
     OnEdge,
-    LeavingEdge,
     OnWall,
 }
 
