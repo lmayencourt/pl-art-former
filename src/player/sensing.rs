@@ -93,7 +93,7 @@ pub fn edge_grab_detection(
     let (transform, entity, mut edge_grab, player) = query.single_mut();
 
     // Ray casting for edge detection
-    let ray_pos = transform.translation.truncate() + Vec2::new(0.0, 0.0);
+    let ray_pos = transform.translation.truncate() + Vec2::new(0.0, 8.0);
     let ray_dir = player.facing_direction;
     let max_toi = 1.2 * 16.0;
     let solid = true;
@@ -103,18 +103,6 @@ pub fn edge_grab_detection(
         edge_grab.0 = true;
     } else {
         edge_grab.0 = false;
-    }
-    if debug.0 {
-        gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
-    }
-
-    let ray_pos = transform.translation.truncate() + Vec2::new(0.0, 16.0);
-    if !edge_grab.0 {
-        if let Some((_entity, _toi)) = rapier_ctx.cast_ray(ray_pos, ray_dir, max_toi, solid, filter) {
-            edge_grab.0 = true;
-        } else {
-            edge_grab.0 = false;
-        }
     }
     if debug.0 {
         gizmos.ray_2d(ray_pos, ray_dir * max_toi, Color::GREEN);
