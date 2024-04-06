@@ -26,12 +26,13 @@ pub struct PlayerPlugin;
 #[derive(Component)]
 pub struct Player {
     state: PlayerState,
+    previous_state: PlayerState,
     facing_direction: Vec2,
     jump_count: u32,
     can_jump: bool,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum PlayerState {
     Idle,
     Walking,
@@ -53,6 +54,8 @@ pub struct EdgeGrab(bool);
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<JustJumped>();
+        app.add_event::<CoyoteStart>();
+        app.insert_resource(CoyoteJumpedFrom{jumped_from: JumpedFrom::Ground});
         app.add_systems(Startup, setup);
         app.add_systems(Startup, sprites::setup);
         // app.add_systems(Update, restart_event_handler);
@@ -70,6 +73,7 @@ impl Plugin for PlayerPlugin {
                 .after(controller::keyboard_inputs),
                                        //.run_if(in_state(ApplicationState::InGame)),
         );
+        app.add_systems(FixedUpdate, movement::coyote_jump.after(controller::keyboard_inputs));
         app.add_systems(Update, sprites::animate_sprite.after(player_movement));
         app.add_systems(Update, sprites::animate_direction.after(player_movement));
         app.add_systems(Update, sprites::jump_particules);
@@ -101,6 +105,7 @@ fn setup(
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
             Player {
                 state: PlayerState::Idle,
+                previous_state: PlayerState::Idle,
                 facing_direction: Vec2::X,
                 jump_count: 0,
                 can_jump: true,

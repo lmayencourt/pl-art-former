@@ -42,18 +42,34 @@ pub struct CoyoteTimer(pub Timer);
 #[derive(Event, Default)]
 pub struct JustJumped;
 
+/// Inform the coyote system that a late jump can be possible
+#[derive(Event, Default)]
+pub struct CoyoteStart(JumpedFrom);
+
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
+pub enum JumpedFrom {
+    #[default] Ground,
+    WallOrEdge,
+}
+
+#[derive(Resource)]
+pub struct CoyoteJumpedFrom {
+    pub jumped_from: JumpedFrom,
+}
+
 pub fn player_movement(
     mut query: Query<(&Controller, &mut Player)>,
     sense_query: Query<(&Grounded, &OnWall, &EdgeGrab), With<Player>>,
     mut modifier_query: Query<(&mut ExternalForce, &mut Velocity, &mut GravityScale), With<Player>>,
-    mut timer_query: Query<(&mut InhibitionTimer, &mut CoyoteTimer), With<Player>>,
-    mut event: EventWriter<JustJumped>,
+    mut timer_query: Query<&mut InhibitionTimer, With<Player>>,
+    mut jump_event: EventWriter<JustJumped>,
+    mut coyote_event: EventWriter<CoyoteStart>,
     time: Res<Time>,
 ) {
     let (controller, mut player) = query.single_mut();
     let (grounded, on_wall, edge_grab) = sense_query.single();
     let (mut force, mut velocity, mut gravity_scale) = modifier_query.single_mut();
-    let (mut inhibition_timer, mut coyote_timer) = timer_query.single_mut();
+    let mut inhibition_timer = timer_query.single_mut();
 
     let player_still: bool = velocity.linvel.x < 20.0 && velocity.linvel.x > -20.0 && controller.direction.x == 0.0;
 
@@ -79,6 +95,16 @@ pub fn player_movement(
     }
     player.can_jump = player.jump_count < PLAYER_MAX_JUMP_COUNT;
 
+    // Coyote time start
+    // Allow the player to jump after leaving the ground or a wall
+    if player.previous_state != PlayerState::InAir && player.state == PlayerState::InAir {
+        if player.previous_state == PlayerState::OnEdge || player.previous_state == PlayerState::OnWall {
+            coyote_event.send(CoyoteStart(JumpedFrom::WallOrEdge));
+        } else {
+            coyote_event.send_default();
+        }
+    }
+
     // info!("Player state {:?}", player.state);
     // info!("Control state {:?}", controller);
     // info!("Velocity {:?}", velocity);
@@ -96,7 +122,7 @@ pub fn player_movement(
     match player.state {
         PlayerState::Idle => {
             if controller.action == Action::Jump {
-                jump(&mut player, &controller, &mut velocity, &mut event);
+                jump(&mut player, &controller, &mut velocity, &mut jump_event);
             }
         }
         PlayerState::Walking => {}
@@ -108,7 +134,7 @@ pub fn player_movement(
             }
 
             if controller.action == Action::Jump {
-                jump(&mut player, &controller, &mut velocity, &mut event);
+                jump(&mut player, &controller, &mut velocity, &mut jump_event);
             }
         }
         PlayerState::InAir => {
@@ -134,10 +160,9 @@ pub fn player_movement(
             gravity_scale.0 = 0.0;
             
             if controller.action == Action::Jump {
-                jump(&mut player, &controller, &mut velocity, &mut event);
+                jump(&mut player, &controller, &mut velocity, &mut jump_event);
                 inhibition_timer.set_duration(Duration::from_millis(30));
                 inhibition_timer.reset();
-                // coyote_timer.reset();
             }
         },
         PlayerState::OnWall => {
@@ -147,9 +172,43 @@ pub fn player_movement(
             }
 
             if controller.action == Action::Jump {
-                wall_jump(&mut player, &mut velocity, &mut event);
+                wall_jump(&mut player, &mut velocity, &mut jump_event);
                 inhibition_timer.set_duration(Duration::from_millis(250));
                 inhibition_timer.reset();
+            }
+        }
+    }
+
+    player.previous_state = player.state;
+}
+
+pub fn coyote_jump(
+    mut query: Query<(&Controller, &mut Player)>,
+    mut modifier_query: Query<&mut Velocity, With<Player>>,
+    mut timer_query: Query<&mut CoyoteTimer, With<Player>>,
+    mut coyote_event: EventReader<CoyoteStart>,
+    mut jump_event: EventWriter<JustJumped>,
+    mut coyote_jump: ResMut<CoyoteJumpedFrom>,
+    time: Res<Time>,
+) {
+    let (controller, mut player) = query.single_mut();
+    let mut velocity = modifier_query.single_mut();
+    let mut coyote_timer = timer_query.single_mut();
+
+    if !coyote_event.is_empty() {
+        for event in coyote_event.read() {
+            coyote_jump.jumped_from = event.0;
+            coyote_timer.reset();
+        }
+    } else {
+        coyote_timer.tick(time.delta());
+        if !coyote_timer.finished() {
+            if controller.action == Action::Jump {
+                if coyote_jump.jumped_from == JumpedFrom::WallOrEdge {
+                    wall_jump(&mut player, &mut velocity, &mut jump_event);
+                } else {
+                    jump(&mut player, &controller, &mut velocity, &mut jump_event);
+                }
             }
         }
     }
