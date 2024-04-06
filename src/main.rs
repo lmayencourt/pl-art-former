@@ -16,8 +16,8 @@ use world::WorldPlugin;
 struct DebugGizmos(bool);
 
 fn main() {
-    // let debug_gizmos = DebugGizmos(true);
     let debug_gizmos = DebugGizmos(false);
+    // let debug_gizmos = DebugGizmos(true);
 
     App::new()
         .insert_resource(debug_gizmos)

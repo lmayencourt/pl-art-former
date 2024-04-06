@@ -13,6 +13,7 @@
  * - https://www.youtube.com/watch?v=yorTG9at90g
  * - https://www.youtube.com/watch?v=STyY26a_dPY
  */
+use std::time::Duration;
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -27,6 +28,9 @@ const RUNNING_FORCE: f32 = PLAYER_MASS / 2.0 * 20.0 * MAX_RUNNING_SPEED;
 const JUMP_SPEED: f32 = 600.0;
 const MAX_FALLING_SPEED: f32 = 600.0;
 const MAX_WALL_SLIDING_SPEED: f32 = 200.0;
+
+// Define if the player can jump more than once before been grounded or on wall again
+pub const PLAYER_MAX_JUMP_COUNT: u32 = 1;
 
 #[derive(Component, Deref, DerefMut)]
 pub struct InhibitionTimer(pub Timer);
@@ -64,10 +68,16 @@ pub fn player_movement(
         player.state = PlayerState::OnWall;
     }
 
+    // Define if player can jump
+    if (grounded.0 || on_wall.0) && controller.jump_released {
+        player.jump_count = 0;
+    }
+    player.can_jump = player.jump_count < PLAYER_MAX_JUMP_COUNT;
+
     // info!("Player state {:?}", player.state);
     // info!("Control state {:?}", controller);
     // info!("Velocity {:?}", velocity);
-    // info!("Sensing grounded {} on_wall {}", grounded.0, on_wall.0);
+    // info!("Sensing grounded: {}, on_wall {}, can jump {}, released {}", grounded.0, on_wall.0, player.jump_count, controller.jump_released);
 
     force.force = Vec2::ZERO;
 
@@ -81,7 +91,7 @@ pub fn player_movement(
     match player.state {
         PlayerState::Idle => {
             if controller.action == Action::Jump {
-                jump(&controller, &mut velocity);
+                jump(&mut player, &controller, &mut velocity);
             }
         }
         PlayerState::Walking => {}
@@ -93,7 +103,7 @@ pub fn player_movement(
             }
 
             if controller.action == Action::Jump {
-                jump(&controller, &mut velocity);
+                jump(&mut player, &controller, &mut velocity);
             }
         }
         PlayerState::InAir => {
@@ -119,7 +129,9 @@ pub fn player_movement(
             gravity_scale.0 = 0.0;
             
             if controller.action == Action::Jump {
-                jump(&controller, &mut velocity);
+                jump(&mut player, &controller, &mut velocity);
+                inhibition_timer.set_duration(Duration::from_millis(30));
+                inhibition_timer.reset();
                 // coyote_timer.reset();
             }
         },
@@ -130,7 +142,8 @@ pub fn player_movement(
             }
 
             if controller.action == Action::Jump {
-                wall_jump(controller.jump_released, &player.facing_direction, &mut velocity);
+                wall_jump(&mut player, &mut velocity);
+                inhibition_timer.set_duration(Duration::from_millis(250));
                 inhibition_timer.reset();
             }
         }
@@ -162,16 +175,20 @@ fn stop_horizontal_velocity(velocity: &mut Velocity, force: &mut ExternalForce, 
     }
 }
 
-fn jump(controller: &Controller, velocity: &mut Velocity) {
-    if controller.jump_released {
+fn jump(player: &mut Player, controller: &Controller, velocity: &mut Velocity) {
+    if player.can_jump {
+        debug!("Jump");
+        player.jump_count += 1;
         velocity.linvel.y = controller.direction.y * JUMP_SPEED;
     }
 }
 
-fn wall_jump(can_jump: bool, direction: &Vec2, velocity: &mut Velocity) {
-    if can_jump {
+fn wall_jump(player: &mut Player, velocity: &mut Velocity) {
+    if player.can_jump {
+        debug!("Wall jump");
+        player.jump_count += 1;
         velocity.linvel.y = JUMP_SPEED;
-        velocity.linvel.x = -direction.x * MAX_RUNNING_SPEED;
+        velocity.linvel.x = -player.facing_direction.x * MAX_RUNNING_SPEED;
     }
 }
 

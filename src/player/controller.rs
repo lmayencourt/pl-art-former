@@ -21,18 +21,13 @@ pub struct Controller {
     pub jump_released: bool,
 }
 
-#[derive(Component, Deref, DerefMut)]
-pub struct KeyRestTimeout(pub Timer);
-
 /// Controller implementation for keyboard
 pub fn keyboard_inputs(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut query: Query<&mut Controller>,
-    mut timer_query: Query<&mut KeyRestTimeout>,
     time: Res<Time>,
 ) {
     let mut controller = query.single_mut();
-    let mut key_timeout = timer_query.single_mut();
 
     controller.action = Action::None;
     controller.direction = Vec2::ZERO;
@@ -48,14 +43,6 @@ pub fn keyboard_inputs(
     if keyboard_input.pressed(KeyCode::Space) {
         controller.direction += Vec2::Y;
         controller.action = Action::Jump;
-        if controller.previous_action != Action::Jump {
-            key_timeout.reset();
-        }
-    }
-
-    // only prevent jumping after a small delay to let the movement system take the order
-    key_timeout.tick(time.delta());
-    if key_timeout.finished() && keyboard_input.pressed(KeyCode::Space) {
         controller.jump_released = false;
     }
 

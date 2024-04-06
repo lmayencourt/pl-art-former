@@ -27,6 +27,8 @@ pub struct PlayerPlugin;
 pub struct Player {
     state: PlayerState,
     facing_direction: Vec2,
+    jump_count: u32,
+    can_jump: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -99,6 +101,8 @@ fn setup(
             Player {
                 state: PlayerState::Idle,
                 facing_direction: Vec2::X,
+                jump_count: 0,
+                can_jump: true,
                 //     // jump_timer: Timer::from_seconds(0.4, TimerMode::Repeating),
             },
             Controller {
@@ -107,8 +111,7 @@ fn setup(
                 previous_action: Action::None,
                 jump_released: true,
             },
-            KeyRestTimeout(Timer::from_seconds(0.1, TimerMode::Once)),
-            InhibitionTimer(Timer::from_seconds(0.3, TimerMode::Once)),
+            InhibitionTimer(Timer::from_seconds(0.25, TimerMode::Once)),
             CoyoteTimer(Timer::from_seconds(0.1, TimerMode::Once)),
             Grounded(false),
             OnWall(false),

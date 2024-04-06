@@ -135,7 +135,7 @@ pub fn jump_particules(
     let (player, player_transform, controller) = player_query.single();
     let (entity, mut particule_tranform, mut particule_system) = particule_query.single_mut();
 
-    if controller.action == Action::Jump && controller.jump_released {
+    if controller.action == Action::Jump && player.can_jump {
         particule_tranform.translation = player_transform.translation.clone();
         particule_tranform.translation.y -= SPRITE_HEIGHT/2.0 * SPRITE_SCALE;
         commands.entity(entity).insert(Playing);
