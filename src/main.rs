@@ -4,6 +4,7 @@
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use bevy_particle_systems::ParticleSystemPlugin;
 
 mod player;
 mod world;
@@ -28,7 +29,7 @@ fn main() {
             player::SPRITE_HEIGHT / 2.0,
         ))
         // .add_plugins(RapierDebugRenderPlugin::default())
-        // .add_plugins(ParticleSystemPlugin)
+        .add_plugins(ParticleSystemPlugin)
         // // Custom plugin and systems
         // .insert_state(ApplicationState::LandingScreen)
         // .add_event::<RestartEvent>()

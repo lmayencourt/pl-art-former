@@ -17,6 +17,7 @@ use sensing::*;
 
 pub const SPRITE_HEIGHT: f32 = 16.0;
 pub const SPRITE_WIDTH: f32 = 16.0;
+pub const SPRITE_SCALE: f32 = 4.0;
 
 pub const PLAYER_MASS: f32 = 80.0;
 
@@ -51,6 +52,7 @@ pub struct EdgeGrab(bool);
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup);
+        app.add_systems(Startup, sprites::setup);
         // app.add_systems(Update, restart_event_handler);
         app.add_systems(
             FixedUpdate,
@@ -68,6 +70,7 @@ impl Plugin for PlayerPlugin {
         );
         app.add_systems(Update, sprites::animate_sprite.after(player_movement));
         app.add_systems(Update, sprites::animate_direction.after(player_movement));
+        app.add_systems(Update, sprites::jump_particules);
     }
 }
 
@@ -89,7 +92,7 @@ fn setup(
                     layout: texture_atlas_layout,
                     index: animation_indices.first,
                 },
-                transform: Transform::from_xyz(0.0, -20.0, 0.0).with_scale(Vec3::splat(4.0)),
+                transform: Transform::from_xyz(0.0, -20.0, 0.0).with_scale(Vec3::splat(SPRITE_SCALE)),
                 ..default()
             },
             animation_indices,
