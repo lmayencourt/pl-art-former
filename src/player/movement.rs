@@ -38,11 +38,16 @@ pub struct InhibitionTimer(pub Timer);
 #[derive(Component, Deref, DerefMut)]
 pub struct CoyoteTimer(pub Timer);
 
+/// Inform other system that the player just performed a jump
+#[derive(Event, Default)]
+pub struct JustJumped;
+
 pub fn player_movement(
     mut query: Query<(&Controller, &mut Player)>,
     sense_query: Query<(&Grounded, &OnWall, &EdgeGrab), With<Player>>,
     mut modifier_query: Query<(&mut ExternalForce, &mut Velocity, &mut GravityScale), With<Player>>,
     mut timer_query: Query<(&mut InhibitionTimer, &mut CoyoteTimer), With<Player>>,
+    mut event: EventWriter<JustJumped>,
     time: Res<Time>,
 ) {
     let (controller, mut player) = query.single_mut();
@@ -91,7 +96,7 @@ pub fn player_movement(
     match player.state {
         PlayerState::Idle => {
             if controller.action == Action::Jump {
-                jump(&mut player, &controller, &mut velocity);
+                jump(&mut player, &controller, &mut velocity, &mut event);
             }
         }
         PlayerState::Walking => {}
@@ -103,7 +108,7 @@ pub fn player_movement(
             }
 
             if controller.action == Action::Jump {
-                jump(&mut player, &controller, &mut velocity);
+                jump(&mut player, &controller, &mut velocity, &mut event);
             }
         }
         PlayerState::InAir => {
@@ -129,7 +134,7 @@ pub fn player_movement(
             gravity_scale.0 = 0.0;
             
             if controller.action == Action::Jump {
-                jump(&mut player, &controller, &mut velocity);
+                jump(&mut player, &controller, &mut velocity, &mut event);
                 inhibition_timer.set_duration(Duration::from_millis(30));
                 inhibition_timer.reset();
                 // coyote_timer.reset();
@@ -142,7 +147,7 @@ pub fn player_movement(
             }
 
             if controller.action == Action::Jump {
-                wall_jump(&mut player, &mut velocity);
+                wall_jump(&mut player, &mut velocity, &mut event);
                 inhibition_timer.set_duration(Duration::from_millis(250));
                 inhibition_timer.reset();
             }
@@ -175,17 +180,19 @@ fn stop_horizontal_velocity(velocity: &mut Velocity, force: &mut ExternalForce, 
     }
 }
 
-fn jump(player: &mut Player, controller: &Controller, velocity: &mut Velocity) {
+fn jump(player: &mut Player, controller: &Controller, velocity: &mut Velocity, event: &mut EventWriter<JustJumped>) {
     if player.can_jump {
         debug!("Jump");
+        event.send_default();
         player.jump_count += 1;
         velocity.linvel.y = controller.direction.y * JUMP_SPEED;
     }
 }
 
-fn wall_jump(player: &mut Player, velocity: &mut Velocity) {
+fn wall_jump(player: &mut Player, velocity: &mut Velocity, event: &mut EventWriter<JustJumped>) {
     if player.can_jump {
         debug!("Wall jump");
+        event.send_default();
         player.jump_count += 1;
         velocity.linvel.y = JUMP_SPEED;
         velocity.linvel.x = -player.facing_direction.x * MAX_RUNNING_SPEED;

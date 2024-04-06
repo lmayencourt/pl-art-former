@@ -52,6 +52,7 @@ pub struct EdgeGrab(bool);
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
+        app.add_event::<JustJumped>();
         app.add_systems(Startup, setup);
         app.add_systems(Startup, sprites::setup);
         // app.add_systems(Update, restart_event_handler);
@@ -113,6 +114,7 @@ fn setup(
             },
             InhibitionTimer(Timer::from_seconds(0.25, TimerMode::Once)),
             CoyoteTimer(Timer::from_seconds(0.1, TimerMode::Once)),
+            JumpParticulesTimer(Timer::from_seconds(0.1, TimerMode::Once)),
             Grounded(false),
             OnWall(false),
             EdgeGrab(false),

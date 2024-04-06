@@ -23,10 +23,9 @@ pub struct AnimationIndices {
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(pub Timer);
 
-/// True for rendering from low to high idx
-/// False for high to low
-// #[derive(Resource)]
-// pub struct AnimationUpDown(pub bool);
+/// Timer to turn of the jump particules after jumping
+#[derive(Component, Deref, DerefMut)]
+pub struct JumpParticulesTimer(pub Timer);
 
 pub fn setup(
     mut commands: Commands,
@@ -39,16 +38,16 @@ pub fn setup(
                 emitter_shape: EmitterShape::Line(Line {
                     length: SPRITE_WIDTH/2.0 * SPRITE_SCALE,
                     // angle: JitteredValue::jittered(std::f32::consts::PI, -0.1..0.1),
-                    angle: JitteredValue::jittered(std::f32::consts::PI/2.0, -0.3..0.3),
+                    angle: JitteredValue::jittered(std::f32::consts::PI/2.0, -1.5..1.5),
                 }),
                 spawn_rate_per_second: 50.0.into(),
-                initial_speed: JitteredValue::jittered(4.0, 0.0..10.0),
+                initial_speed: JitteredValue::jittered(10.0, 5.0..20.0),
                 lifetime: JitteredValue::jittered(0.2, -0.1..0.2),
                 color: ColorOverTime::Gradient(Curve::new(vec![
                     CurvePoint::new(Color::WHITE, 0.0),
                     CurvePoint::new(Color::rgba(0.5, 0.5, 1.0, 0.0), 1.0),
                 ])),
-                initial_scale: JitteredValue::jittered(3.0, -1.0..1.0),
+                initial_scale: JitteredValue::jittered(3.0, -1.0..2.0),
                 looping: true,
                 system_duration_seconds: 0.2,
                 ..ParticleSystem::default()
@@ -137,18 +136,27 @@ pub fn animate_direction(mut query: Query<(&Player, &mut Sprite)>) {
 }
 
 pub fn jump_particules(
+    time: Res<Time>,
     mut commands: Commands,
-    mut player_query: Query<(&Player, &Transform, &Controller)>,
-    mut particule_query: Query<(Entity, &mut Transform, &mut ParticleSystem), Without<Player>>,
+    mut events: EventReader<JustJumped>,
+    player_query: Query<&Transform, With<Player>>,
+    mut particule_query: Query<(Entity, &mut Transform), (With<ParticleSystem>, Without<Player>)>,
+    mut timer_query: Query<&mut JumpParticulesTimer, With<Player>>,
 ) {
-    let (player, player_transform, controller) = player_query.single();
-    let (entity, mut particule_tranform, mut particule_system) = particule_query.single_mut();
+    let player_transform = player_query.single();
+    let (entity, mut particule_tranform) = particule_query.single_mut();
+    let mut timer = timer_query.single_mut();
 
-    if controller.action == Action::Jump && player.can_jump {
+    if !events.is_empty() {
+        events.clear();
         particule_tranform.translation = player_transform.translation.clone();
         particule_tranform.translation.y -= SPRITE_HEIGHT/2.0 * SPRITE_SCALE;
         commands.entity(entity).insert(Playing);
+        timer.reset();
     } else {
-        commands.entity(entity).remove::<Playing>();
+        timer.tick(time.delta());
+        if timer.finished() {
+            commands.entity(entity).remove::<Playing>();
+        }
     }
 }
