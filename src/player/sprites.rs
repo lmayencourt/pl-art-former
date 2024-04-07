@@ -12,6 +12,7 @@ pub const SPRITE_RUN_IDX: (usize, usize) = (0, 7);
 pub const SPRITE_WALK_IDX: (usize, usize) = (8, 15);
 pub const SPRITE_IDLE_IDX: (usize, usize) = (16, 23);
 pub const SPRITE_JUMP_IDX: (usize, usize) = (25, 26);
+pub const SPRITE_ON_WALL_IDX: (usize, usize) = (32, 32);
 
 #[derive(Component)]
 pub struct AnimationIndices {
@@ -117,7 +118,7 @@ pub fn animate_sprite(
                 }
             },
             PlayerState::OnEdge | PlayerState::OnWall => {
-                atlas.index = SPRITE_WALK_IDX.0 + 5;
+                atlas.index = SPRITE_ON_WALL_IDX.0;
             }
         }
 
