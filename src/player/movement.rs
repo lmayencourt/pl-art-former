@@ -27,7 +27,7 @@ const RUNNING_FORCE: f32 = PLAYER_MASS / 2.0 * 20.0 * MAX_RUNNING_SPEED;
 
 const JUMP_SPEED: f32 = 600.0;
 const MAX_FALLING_SPEED: f32 = 600.0;
-const MAX_WALL_SLIDING_SPEED: f32 = 200.0;
+const MAX_WALL_SLIDING_SPEED: f32 = 100.0;
 
 // Define if the player can jump more than once before been grounded or on wall again
 pub const PLAYER_MAX_JUMP_COUNT: u32 = 1;
@@ -57,13 +57,21 @@ pub struct CoyoteJumpedFrom {
     pub jumped_from: JumpedFrom,
 }
 
+#[derive(Resource)]
+pub struct BufferedJump {
+    pub should_jump: bool,
+    pub timer: Timer,
+}
+
 pub fn player_movement(
     mut query: Query<(&Controller, &mut Player)>,
     sense_query: Query<(&Grounded, &OnWall, &EdgeGrab), With<Player>>,
     mut modifier_query: Query<(&mut ExternalForce, &mut Velocity, &mut GravityScale), With<Player>>,
     mut timer_query: Query<&mut InhibitionTimer, With<Player>>,
+    mut action_event: EventReader<ActionEvent>,
     mut jump_event: EventWriter<JustJumped>,
     mut coyote_event: EventWriter<CoyoteStart>,
+    mut buffured_jump: ResMut<BufferedJump>,
     time: Res<Time>,
 ) {
     let (controller, mut player) = query.single_mut();
@@ -95,6 +103,28 @@ pub fn player_movement(
     }
     player.can_jump = player.jump_count < PLAYER_MAX_JUMP_COUNT;
 
+    for event in action_event.read() {
+        if event.0 == Action::Jump {
+            debug!("Start of jump event");
+            buffured_jump.timer.reset();
+        }
+    }
+
+    // Buffered jump
+    // Allow the player to press the jump button slightly before being able to jump
+    buffured_jump.timer.tick(time.delta());
+    if !buffured_jump.timer.finished() {
+        // info!("Apply buffered jump: {}", buffured_jump.should_jump);
+        buffured_jump.should_jump = true; //buffured_jump.should_jump;
+    } else {
+        buffured_jump.should_jump = false;
+        // buffured_jump.should_jump = false;
+    }
+
+    if buffured_jump.timer.just_finished() {
+        debug!("End of jump event");
+    }
+
     // Coyote time start
     // Allow the player to jump after leaving the ground or a wall
     if player.previous_state != PlayerState::InAir && player.state == PlayerState::InAir {
@@ -121,7 +151,7 @@ pub fn player_movement(
     // Apply action according to player state
     match player.state {
         PlayerState::Idle => {
-            if controller.action == Action::Jump {
+            if buffured_jump.should_jump {
                 jump(&mut player, &controller, &mut velocity, &mut jump_event);
             }
         }
@@ -133,7 +163,7 @@ pub fn player_movement(
                 stop_horizontal_velocity(&mut velocity, &mut force, RUNNING_FORCE * 2.0);
             }
 
-            if controller.action == Action::Jump {
+            if buffured_jump.should_jump {
                 jump(&mut player, &controller, &mut velocity, &mut jump_event);
             }
         }
@@ -159,7 +189,7 @@ pub fn player_movement(
             velocity.linvel = Vec2::ZERO;
             gravity_scale.0 = 0.0;
             
-            if controller.action == Action::Jump {
+            if buffured_jump.should_jump {
                 jump(&mut player, &controller, &mut velocity, &mut jump_event);
                 inhibition_timer.set_duration(Duration::from_millis(30));
                 inhibition_timer.reset();
@@ -171,7 +201,7 @@ pub fn player_movement(
                 velocity.linvel.y = -MAX_WALL_SLIDING_SPEED;
             }
 
-            if controller.action == Action::Jump {
+            if buffured_jump.should_jump {
                 wall_jump(&mut player, &mut velocity, &mut jump_event);
                 inhibition_timer.set_duration(Duration::from_millis(250));
                 inhibition_timer.reset();
@@ -186,6 +216,7 @@ pub fn coyote_jump(
     mut query: Query<(&Controller, &mut Player)>,
     mut modifier_query: Query<&mut Velocity, With<Player>>,
     mut timer_query: Query<&mut CoyoteTimer, With<Player>>,
+    mut buffured_jump: ResMut<BufferedJump>,
     mut coyote_event: EventReader<CoyoteStart>,
     mut jump_event: EventWriter<JustJumped>,
     mut coyote_jump: ResMut<CoyoteJumpedFrom>,
@@ -203,7 +234,7 @@ pub fn coyote_jump(
     } else {
         coyote_timer.tick(time.delta());
         if !coyote_timer.finished() {
-            if controller.action == Action::Jump {
+            if buffured_jump.should_jump {
                 if coyote_jump.jumped_from == JumpedFrom::WallOrEdge {
                     wall_jump(&mut player, &mut velocity, &mut jump_event);
                 } else {
@@ -244,7 +275,7 @@ fn jump(player: &mut Player, controller: &Controller, velocity: &mut Velocity, e
         debug!("Jump");
         event.send_default();
         player.jump_count += 1;
-        velocity.linvel.y = controller.direction.y * JUMP_SPEED;
+        velocity.linvel.y = JUMP_SPEED;
     }
 }
 

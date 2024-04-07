@@ -55,7 +55,12 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<JustJumped>();
         app.add_event::<CoyoteStart>();
+        app.add_event::<ActionEvent>();
         app.insert_resource(CoyoteJumpedFrom{jumped_from: JumpedFrom::Ground});
+        app.insert_resource(BufferedJump {
+            should_jump: false,
+            timer: Timer::from_seconds(0.1, TimerMode::Once),
+        });
         app.add_systems(Startup, setup);
         app.add_systems(Startup, sprites::setup);
         // app.add_systems(Update, restart_event_handler);

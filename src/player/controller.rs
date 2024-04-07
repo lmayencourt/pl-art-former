@@ -7,11 +7,15 @@
 /// with a keyboard or a game-controller.
 use bevy::prelude::*;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Default)]
 pub enum Action {
-    None,
+    #[default] None,
     Jump,
 }
+
+/// Inform other system of an action to perform
+#[derive(Event, Default)]
+pub struct ActionEvent(pub Action);
 
 #[derive(Component, Debug)]
 pub struct Controller {
@@ -25,6 +29,7 @@ pub struct Controller {
 pub fn keyboard_inputs(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut query: Query<&mut Controller>,
+    mut event: EventWriter<ActionEvent>,
     time: Res<Time>,
 ) {
     let mut controller = query.single_mut();
@@ -43,7 +48,10 @@ pub fn keyboard_inputs(
     if keyboard_input.pressed(KeyCode::Space) {
         controller.direction += Vec2::Y;
         controller.action = Action::Jump;
-        controller.jump_released = false;
+        if controller.jump_released {
+            event.send(ActionEvent(Action::Jump));
+            controller.jump_released = false;
+        }
     }
 
     // Allow jumping when key is released.
