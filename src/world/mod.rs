@@ -123,5 +123,5 @@ fn spawn_wall(commands: &mut Commands, translation: Vec3, scale: Vec3, texture: 
             ..default()
         },))
         .insert(RigidBody::Fixed)
-        .insert(Collider::cuboid(TILE_SCALER, TILE_SCALER));
+        .insert(Collider::cuboid(TILE_SIZE/2.0, TILE_SIZE/2.0));
 }
