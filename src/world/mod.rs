@@ -7,7 +7,7 @@ use bevy_rapier2d::prelude::*;
 
 pub mod levels;
 
-use levels::LEVEL_TRAINING;
+use levels::*;
 
 pub struct WorldPlugin;
 
@@ -79,7 +79,7 @@ fn setup_world(
         TextureAtlasLayout::from_grid(Vec2::new(TILE_SIZE, TILE_SIZE), 4, 3, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
-    for (y, line) in LEVEL_TRAINING.lines().enumerate() {
+    for (y, line) in LEVEL_GENERATED_BIG.lines().enumerate() {
         println!("line is {:?}", line);
         for (x, char) in line.chars().enumerate() {
             let translation = Vec3::new(

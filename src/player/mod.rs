@@ -5,11 +5,13 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
+pub mod camera;
 pub mod controller;
 pub mod movement;
 pub mod sprites;
 pub mod sensing;
 
+use camera::*;
 use controller::*;
 use movement::*;
 use sprites::*;
@@ -82,6 +84,7 @@ impl Plugin for PlayerPlugin {
         app.add_systems(Update, sprites::animate_sprite.after(player_movement));
         app.add_systems(Update, sprites::animate_direction.after(player_movement));
         app.add_systems(Update, sprites::jump_particules);
+        app.add_systems(Update, camera::follow_player);
     }
 }
 
