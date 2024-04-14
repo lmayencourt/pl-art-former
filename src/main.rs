@@ -5,6 +5,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use bevy_particle_systems::ParticleSystemPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 mod player;
 mod world;
