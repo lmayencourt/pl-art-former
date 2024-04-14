@@ -76,10 +76,10 @@ fn setup_world(
     // Tile-set
     let texture = asset_server.load("tiles.png");
     let layout =
-        TextureAtlasLayout::from_grid(Vec2::new(TILE_SIZE, TILE_SIZE), 4, 3, None, None);
+        TextureAtlasLayout::from_grid(Vec2::new(TILE_SIZE, TILE_SIZE), 4, 5, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
-    for (y, line) in LEVEL_GENERATED_BIG.lines().enumerate() {
+    for (y, line) in LEVEL_TRAINING.lines().enumerate() {
         println!("line is {:?}", line);
         for (x, char) in line.chars().enumerate() {
             let translation = Vec3::new(
@@ -88,14 +88,23 @@ fn setup_world(
                 0.0,
             );
             let scale = Vec3::new(TILE_SCALER, TILE_SCALER, 0.0);
+            let style = 3;
             let idx = if char == 'B' {
-                Some(0)
+                Some(0 + style*4)
+            } else if char == 'b' {
+                Some(0 + (style+1)*4)
             } else if char == 'R' {
-                Some(1)
+                Some(1 + style*4)
+            } else if char == 'r' {
+                Some(1 + (style+1)*4)
             } else if char == 'G' {
-                Some(2)
+                Some(2 + style*4)
+            } else if char == 'g' {
+                Some(2 + (style+1)*4)
             } else if char == 'D' {
-                Some(3)
+                Some(3 + style*4)
+            } else if char == 'd' {
+                Some(3 + (style+1)*4)
             } else {
                 None
             };
