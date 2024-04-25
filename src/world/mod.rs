@@ -73,6 +73,18 @@ fn setup_world(
     // 2d Camera
     commands.spawn(Camera2dBundle::default());
 
+    // Background
+    let texture = asset_server.load("background_mountains.png");
+    commands.spawn(SpriteBundle{
+        texture: texture,
+        transform: Transform {
+            translation: Vec3::new(0.0, 200.0, -10.0),
+            scale: Vec3::new(TILE_SCALER, TILE_SCALER, 0.0),
+            ..default()
+        },
+        ..default()
+    });
+
     // Tile-set
     let texture = asset_server.load("tiles.png");
     let layout =
