@@ -108,6 +108,32 @@ pub fn player_movement(
             debug!("Start of jump event");
             buffured_jump.timer.reset();
         }
+
+        match event.0 {
+            Action::Jump => {
+                debug!("Start of jump event");
+                buffured_jump.timer.reset();
+            },
+            Action::EnterClimbingMode => {
+                info!("Enter climbing mode");
+            },
+            Action::ExitClimbingMode => {
+                info!("Exit climbing mode");
+            },
+            Action::GrabLeft => {
+                info!("Grab left hold");
+            },
+            Action::GrabRight => {
+                info!("Grab right hold");
+            },
+            Action::GrabUp => {
+                info!("Grab up hold");
+            },
+            Action::GrabDown => {
+                info!("Grab down hold");
+            }
+            _ => {}
+        }
     }
 
     // Buffered jump

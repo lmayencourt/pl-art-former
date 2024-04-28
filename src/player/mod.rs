@@ -124,6 +124,7 @@ fn setup(
                 action: Action::None,
                 previous_action: Action::None,
                 jump_released: true,
+                action_vector: 0,
             },
             InhibitionTimer(Timer::from_seconds(0.25, TimerMode::Once)),
             CoyoteTimer(Timer::from_seconds(0.1, TimerMode::Once)),

@@ -11,7 +11,20 @@ use bevy::prelude::*;
 pub enum Action {
     #[default] None,
     Jump,
+    EnterClimbingMode,
+    ExitClimbingMode,
+    GrabLeft,
+    GrabRight,
+    GrabUp,
+    GrabDown,
 }
+
+const JUMP_MASK: u32 = 1;
+const CLIMBING_MODE_MASK: u32 = 2;
+const GRAB_LEFT_MASK: u32 = 4;
+const GRAB_RIGHT_MASK: u32 = 8;
+const GRAB_UP_MASK: u32 = 16;
+const GRAB_DOWN_MASK: u32 = 32;
 
 /// Inform other system of an action to perform
 #[derive(Event, Default)]
@@ -23,6 +36,7 @@ pub struct Controller {
     pub action: Action,
     pub previous_action: Action,
     pub jump_released: bool,
+    pub action_vector: u32,
 }
 
 /// Controller implementation for keyboard
@@ -59,5 +73,48 @@ pub fn keyboard_inputs(
         controller.jump_released = true;
     }
 
+    // Climbing inputs
+    let climb_mode = (controller.action_vector & CLIMBING_MODE_MASK) != 0;
+    if keyboard_input.pressed(KeyCode::ShiftLeft) || keyboard_input.pressed(KeyCode::ShiftRight) {
+        if !climb_mode {
+            event.send(ActionEvent(Action::EnterClimbingMode));
+            controller.action_vector |= CLIMBING_MODE_MASK;
+        }
+    } else if !keyboard_input.pressed(KeyCode::ShiftLeft) && !keyboard_input.pressed(KeyCode::ShiftRight){
+        if climb_mode {
+            event.send(ActionEvent(Action::ExitClimbingMode));
+            controller.action_vector &= !CLIMBING_MODE_MASK;
+        }
+    }
+
+    if climb_mode {
+        if handle_key_input(&mut controller, GRAB_LEFT_MASK, keyboard_input.pressed(KeyCode::KeyA)) {
+            event.send(ActionEvent(Action::GrabLeft));
+        }
+        if handle_key_input(&mut controller, GRAB_RIGHT_MASK, keyboard_input.pressed(KeyCode::KeyD)) {
+            event.send(ActionEvent(Action::GrabRight));
+        }
+        if handle_key_input(&mut controller, GRAB_UP_MASK, keyboard_input.pressed(KeyCode::KeyW)) {
+            event.send(ActionEvent(Action::GrabUp));
+        }
+        if handle_key_input(&mut controller, GRAB_DOWN_MASK, keyboard_input.pressed(KeyCode::KeyS)) {
+            event.send(ActionEvent(Action::GrabDown));
+        }
+    }
+
     controller.previous_action = controller.action;
+}
+
+fn handle_key_input(controller: &mut Controller, action_mask: u32, key_pressed: bool) -> bool {
+    let action = controller.action_vector & action_mask != 0;
+    if key_pressed {
+        if !action {
+            controller.action_vector |= action_mask;
+            return true
+        }
+    } else {
+        controller.action_vector &= !action_mask;
+    }
+
+    false
 }
