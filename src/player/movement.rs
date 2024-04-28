@@ -94,7 +94,11 @@ pub fn player_movement(
             player.state = PlayerState::OnWall;
         }
     } else if !grounded.0 && !edge_grab.0 && on_wall.0 {
-        player.state = PlayerState::OnWall;
+        if player.previous_state == PlayerState::Climbing {
+            player.state = PlayerState::Climbing;
+        } else {
+            player.state = PlayerState::OnWall;
+        }
     }
 
     // Define if player can jump
@@ -115,10 +119,14 @@ pub fn player_movement(
                 buffured_jump.timer.reset();
             },
             Action::EnterClimbingMode => {
-                info!("Enter climbing mode");
+                if on_wall.0 {
+                    info!("Enter climbing mode");
+                    player.state = PlayerState::Climbing;
+                }
             },
             Action::ExitClimbingMode => {
                 info!("Exit climbing mode");
+                player.state = PlayerState::OnWall;
             },
             Action::GrabLeft => {
                 info!("Grab left hold");
@@ -232,6 +240,10 @@ pub fn player_movement(
                 inhibition_timer.set_duration(Duration::from_millis(250));
                 inhibition_timer.reset();
             }
+        },
+        PlayerState::Climbing => {
+            gravity_scale.0 = 0.0;
+            velocity.linvel = Vec2::ZERO;
         }
     }
 

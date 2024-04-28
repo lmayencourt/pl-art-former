@@ -117,7 +117,7 @@ pub fn animate_sprite(
                     }
                 }
             },
-            PlayerState::OnEdge | PlayerState::OnWall => {
+            PlayerState::OnEdge | PlayerState::OnWall | PlayerState::Climbing => {
                 atlas.index = SPRITE_ON_WALL_IDX.0;
             }
         }
