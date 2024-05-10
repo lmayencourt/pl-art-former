@@ -6,14 +6,12 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 pub mod camera;
-pub mod climbing;
 pub mod controller;
 pub mod movement;
 pub mod sprites;
 pub mod sensing;
 
 use camera::*;
-use climbing::*;
 use controller::*;
 use movement::*;
 use sprites::*;
@@ -68,7 +66,6 @@ impl Plugin for PlayerPlugin {
         });
         app.add_systems(Startup, setup);
         app.add_systems(Startup, sprites::setup);
-        app.add_systems(Startup, climbing::setup);
         // app.add_systems(Update, restart_event_handler);
         app.add_systems(
             FixedUpdate,
@@ -85,7 +82,6 @@ impl Plugin for PlayerPlugin {
                                        //.run_if(in_state(ApplicationState::InGame)),
         );
         app.add_systems(FixedUpdate, movement::coyote_jump.after(controller::keyboard_inputs));
-        app.add_systems(Update, climbing::show_hold);
         app.add_systems(Update, sprites::animate_sprite.after(player_movement));
         app.add_systems(Update, sprites::animate_direction.after(player_movement));
         app.add_systems(Update, sprites::jump_particules);

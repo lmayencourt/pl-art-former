@@ -20,7 +20,7 @@ use bevy_rapier2d::prelude::*;
 
 //  use crate::physics::{CollideEvent, CollideWith};
 use crate::player::*;
-use crate::world::TILE_SCALED;
+use crate::world::{TILE_SCALED, holds::ShowHolds, holds::HoldsVisibility};
 
 const MAX_RUNNING_SPEED: f32 = 250.0;
 // Force to apply to reach MAX_RUNNING_SPEED in 2 secs
@@ -73,6 +73,7 @@ pub fn player_movement(
     mut jump_event: EventWriter<JustJumped>,
     mut coyote_event: EventWriter<CoyoteStart>,
     mut buffured_jump: ResMut<BufferedJump>,
+    mut show_holds_event: EventWriter<ShowHolds>,
     time: Res<Time>,
 ) {
     let (controller, mut player) = query.single_mut();
@@ -124,11 +125,13 @@ pub fn player_movement(
                 if on_wall.0 {
                     info!("Enter climbing mode");
                     player.state = PlayerState::Climbing;
+                    show_holds_event.send(ShowHolds(HoldsVisibility::Visible));
                 }
             },
             Action::ExitClimbingMode => {
                 info!("Exit climbing mode");
                 player.state = PlayerState::OnWall;
+                show_holds_event.send(ShowHolds(HoldsVisibility::Hidden));
             },
             Action::GrabLeft | Action::GrabRight | Action::GrabUp | Action::GrabDown => {
                 info!("Grab hold");

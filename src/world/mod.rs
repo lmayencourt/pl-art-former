@@ -4,10 +4,16 @@
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use rand::{
+    distributions::{Distribution, Standard},
+    Rng,
+};
 
 pub mod levels;
+pub mod holds;
 
 use levels::*;
+use holds::*;
 
 pub struct WorldPlugin;
 
@@ -26,7 +32,9 @@ const WORLD_LEFT: f32 = -WORLD_RIGHT;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
+        app.add_event::<ShowHolds>();
         app.add_systems(Startup, setup_world);
+        app.add_systems(Update, show_hold);
         // app.add_systems(Update, debug_grid);
     }
 }
@@ -88,7 +96,7 @@ fn setup_world(
     // Tile-set
     let texture = asset_server.load("tiles.png");
     let layout =
-        TextureAtlasLayout::from_grid(Vec2::new(TILE_SIZE, TILE_SIZE), 4, 5, None, None);
+        TextureAtlasLayout::from_grid(Vec2::new(TILE_SIZE, TILE_SIZE), 4, 6, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
     for (y, line) in LEVEL_TRAINING.lines().enumerate() {
@@ -132,6 +140,7 @@ fn setup_world(
 }
 
 fn spawn_wall(commands: &mut Commands, translation: Vec3, scale: Vec3, texture: Handle<Image>, atlas: TextureAtlas) {
+    let default_view_idx = atlas.index;
     commands
         .spawn((SpriteSheetBundle {
             texture,
@@ -144,5 +153,6 @@ fn spawn_wall(commands: &mut Commands, translation: Vec3, scale: Vec3, texture: 
             ..default()
         },))
         .insert(RigidBody::Fixed)
-        .insert(Collider::cuboid(TILE_SIZE/2.0, TILE_SIZE/2.0));
+        .insert(Collider::cuboid(TILE_SIZE/2.0, TILE_SIZE/2.0))
+        .insert(WallHold{key: rand::random(), wall_index: default_view_idx});
 }
