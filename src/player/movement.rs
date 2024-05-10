@@ -20,6 +20,7 @@ use bevy_rapier2d::prelude::*;
 
 //  use crate::physics::{CollideEvent, CollideWith};
 use crate::player::*;
+use crate::world::TILE_SCALED;
 
 const MAX_RUNNING_SPEED: f32 = 250.0;
 // Force to apply to reach MAX_RUNNING_SPEED in 2 secs
@@ -66,7 +67,7 @@ pub struct BufferedJump {
 pub fn player_movement(
     mut query: Query<(&Controller, &mut Player)>,
     sense_query: Query<(&Grounded, &OnWall, &EdgeGrab), With<Player>>,
-    mut modifier_query: Query<(&mut ExternalForce, &mut Velocity, &mut GravityScale), With<Player>>,
+    mut modifier_query: Query<(&mut ExternalForce, &mut Velocity, &mut Transform, &mut GravityScale), With<Player>>,
     mut timer_query: Query<&mut InhibitionTimer, With<Player>>,
     mut action_event: EventReader<ActionEvent>,
     mut jump_event: EventWriter<JustJumped>,
@@ -76,7 +77,7 @@ pub fn player_movement(
 ) {
     let (controller, mut player) = query.single_mut();
     let (grounded, on_wall, edge_grab) = sense_query.single();
-    let (mut force, mut velocity, mut gravity_scale) = modifier_query.single_mut();
+    let (mut force, mut velocity, mut transform, mut gravity_scale) = modifier_query.single_mut();
     let mut inhibition_timer = timer_query.single_mut();
 
     let player_still: bool = velocity.linvel.x < 20.0 && velocity.linvel.x > -20.0 && controller.direction.x == 0.0;
@@ -107,6 +108,7 @@ pub fn player_movement(
     }
     player.can_jump = player.jump_count < PLAYER_MAX_JUMP_COUNT;
 
+    let mut grabe_input: Option<Action> = None;
     for event in action_event.read() {
         if event.0 == Action::Jump {
             debug!("Start of jump event");
@@ -128,18 +130,10 @@ pub fn player_movement(
                 info!("Exit climbing mode");
                 player.state = PlayerState::OnWall;
             },
-            Action::GrabLeft => {
-                info!("Grab left hold");
+            Action::GrabLeft | Action::GrabRight | Action::GrabUp | Action::GrabDown => {
+                info!("Grab hold");
+                grabe_input = Some(event.0);
             },
-            Action::GrabRight => {
-                info!("Grab right hold");
-            },
-            Action::GrabUp => {
-                info!("Grab up hold");
-            },
-            Action::GrabDown => {
-                info!("Grab down hold");
-            }
             _ => {}
         }
     }
@@ -244,6 +238,9 @@ pub fn player_movement(
         PlayerState::Climbing => {
             gravity_scale.0 = 0.0;
             velocity.linvel = Vec2::ZERO;
+            if grabe_input.is_some() {
+                transform.translation.y += TILE_SCALED/2.0;
+            }
         }
     }
 

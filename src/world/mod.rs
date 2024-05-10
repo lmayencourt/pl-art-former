@@ -13,7 +13,7 @@ pub struct WorldPlugin;
 
 const TILE_SIZE: f32 = 8.0;
 const TILE_SCALER: f32 = 4.0;
-const TILE_SCALED: f32 = TILE_SIZE * TILE_SCALER;
+pub const TILE_SCALED: f32 = TILE_SIZE * TILE_SCALER;
 
 /// World size definition
 const WORLD_HEIGHT: f32 = 600.0;
