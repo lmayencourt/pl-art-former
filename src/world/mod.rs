@@ -96,7 +96,7 @@ fn setup_world(
     // Tile-set
     let texture = asset_server.load("tiles.png");
     let layout =
-        TextureAtlasLayout::from_grid(Vec2::new(TILE_SIZE, TILE_SIZE), 4, 6, None, None);
+        TextureAtlasLayout::from_grid(Vec2::new(TILE_SIZE, TILE_SIZE), 4, 7, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
     for (y, line) in LEVEL_TRAINING.lines().enumerate() {

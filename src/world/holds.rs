@@ -60,7 +60,7 @@ pub fn show_hold(
                 HoldsVisibility::Visible => {
                     info!("Displaying holds");
                     for (mut hold, mut atlas) in wall_hold_query.iter_mut() {
-                        atlas.index = 5*4+(hold.key as usize);
+                        atlas.index = 6*4+(hold.key as usize);
                     }
                 }
             }
